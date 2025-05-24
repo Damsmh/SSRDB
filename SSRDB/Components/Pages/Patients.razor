@@ -1,0 +1,154 @@
+﻿@page "/patients"
+@inherits OwningComponentBase<IPatientRepository>
+@rendermode InteractiveServer
+
+<PageTitle>Patients</PageTitle>
+
+<div class="d-flex justify-content-between pb-5">
+    <h1>Пациенты</h1>
+    <button type="button" class="btn btn-dark"
+    data-bs-toggle="modal"
+    data-bs-target="#patientModal">
+        Добавить
+    </button>
+    <div class="modal fade" id="patientModal" tabindex="-1" aria-labelledby="patientModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="patientModalLabel">Сведения о пациенте</h5>
+                </div>
+                <EditForm Model="ModelPatient" OnSubmit="InsertObjAsync" FormName="PatientForm">
+                    <div class="modal-body">
+                        <table class="table">
+                            <tr>
+                                <td>ФИО</td>
+                                <td><InputText @bind-Value="ModelPatient!.FullName" /></td>
+                            </tr>
+                            <tr>
+                                <td>Дата рождения</td>
+                                <td><InputDate @bind-Value="ModelPatient!.BirthDate" /></td>
+                            </tr>
+                            <tr>
+                                <td>Пол</td>
+                                <td>
+                                    <InputSelect class="form-select form-select-sm w-auto"
+                                        @bind-Value="ModelPatient!.Gender">
+                                        <option value="М">М</option>
+                                        <option value="Ж">Ж</option>
+                                    </InputSelect>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Паспорт</td>
+                                <td><InputText @bind-Value="ModelPatient!.PassportNumber" /></td>
+                            </tr>
+                            <tr>
+                                <td>Телефон</td>
+                                <td><InputText @bind-Value="ModelPatient!.Phone" /></td>
+                            </tr>
+                            <tr>
+                                <td>Почта</td>
+                                <td><InputText type="email" @bind-Value="ModelPatient!.Email" /></td>
+                            </tr>
+                            <tr>
+                                <td>Адрес</td>
+                                <td><InputText @bind-Value="ModelPatient!.Address" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn border-black" data-bs-dismiss="modal" @onclick="Discard">Закрыть</button>
+                        <button type="submit" class="btn btn-dark" data-bs-dismiss="modal">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (patients == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table border">
+        <thead>
+            <tr>
+                @foreach (var head in headers)
+                {
+                    <th>@head</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var patient in patients)
+            {
+                <tr @key="patient.PatientId">
+                    <td>@patient.PatientId</td>
+                    <td>@patient.FullName</td>
+                    <td>@patient.BirthDate</td>
+                    <td>@patient.Gender</td>
+                    <td>@patient.PassportNumber</td>
+                    <td>@patient.Phone</td>
+                    <td>@patient.Email</td>
+                    <td>@patient.Address</td>
+                    <td>
+                        <button
+                        type="button"
+                        @onclick="@(async () => await DetailsObjAsync(patient.PatientId))"
+                        class="btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#patientModal">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button
+                        type="button"
+                        @onclick="@(async () => await DeleteObjAsync(patient.PatientId))"
+                        class="btn">
+                            <i class="bi bi-trash text-danger"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Entities.Patient>? patients;
+    private List<string> headers = ["ID", "ФИО", "Дата рождения", "Пол", "Паспорт", "Телефон", "Почта", "Адрес", "Действия"];
+    [SupplyParameterFromForm(FormName = "PatientForm")]
+    public Entities.Patient? ModelPatient { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ModelPatient ??= new();
+        ModelPatient!.PatientId = 0;
+        patients = await Service.GetAllAsync();
+    }
+
+    private void Discard()
+    {
+        ModelPatient = new();
+    }
+    private async Task InsertObjAsync()
+    {
+        if (ModelPatient!.PatientId == 0) { await Service.AddAsync(ModelPatient); }
+        else { await Service.UpdateAsync(ModelPatient); }
+        patients = await Service.GetAllAsync();
+        Discard();
+    }
+
+    private async Task DetailsObjAsync(int Id)
+    {
+        ModelPatient = await Service.GetByIdAsync(Id);
+    }
+
+    private async Task DeleteObjAsync(int Id)
+    {
+        await Service.DeleteAsync(Id);
+        patients = await Service.GetAllAsync();
+    }
+}

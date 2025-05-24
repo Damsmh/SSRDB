@@ -1,0 +1,202 @@
+﻿@page "/appointments"
+@inherits OwningComponentBase<IAppointmentRepository>
+@inject IPatientRepository PatientService
+@inject IEmployeeRepository EmployeeService
+@rendermode InteractiveServer
+
+<PageTitle>Appointments</PageTitle>
+
+<div class="d-flex justify-content-between pb-5">
+    <h1>Приёмы</h1>
+    <button type="button" class="btn btn-dark"
+    data-bs-toggle="modal"
+    data-bs-target="#appointmentModal">
+        Добавить
+    </button>
+    <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="appointmentModalLabel">Сведения о Приёме</h5>
+                </div>
+                <EditForm Model="ModelAppointment" OnSubmit="InsertObjAsync" FormName="AppointmentForm">
+                    <div class="modal-body">
+                        <table class="table">
+                            <tr>
+                                <td>Пациент</td>
+                                <td>
+                                    <input type="text" class="form-control" list="Patients" @bind="PatientName" @bind:event="oninput" @bind:after="SearchPatient" />
+                                    <datalist class="col-4" id="Patients">
+                                        @if (patients != null)
+                                        {
+                                            @foreach (var patient in patients)
+                                            {
+                                                <option value="@patient.FullName"></option>
+                                            }
+                                        }
+                                    </datalist>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Врач</td>
+                                <td>
+                                    <input type="text" class="form-control" list="Employees" @bind="EmployeeName" @bind:event="oninput" @bind:after="SearchEmployee"/>
+                                    <datalist class="col-4" id="Employees">
+                                        @if (doctors != null)
+                                        {
+                                            @foreach (var employee in doctors)
+                                            {
+                                                <option value="@employee.FullName"></option>
+                                            }
+                                        }
+                                    </datalist>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Дата</td>
+                                <td>
+                                    <InputDate @bind-Value="ModelAppointment!.AppointmentDate"></InputDate>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Статус</td>
+                                <td>
+                                    <InputSelect class="form-select form-select-sm w-auto"
+                                    @bind-Value="ModelAppointment!.Status">
+                                        <option value="Завершён">Завершён</option>
+                                        <option value="Запланирован">Запланирован</option>
+                                        <option value="В процессе">В процессе</option>
+                                        <option value="Отменён">Отменён</option>
+                                    </InputSelect>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Информация</td>
+                                <td><InputText @bind-Value="ModelAppointment!.Notes" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn border-black" data-bs-dismiss="modal" @onclick="Discard">Закрыть</button>
+                        <button type="submit" class="btn btn-dark" data-bs-dismiss="modal">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (appointments == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table border">
+        <thead>
+            <tr>
+                @foreach (var head in headers)
+                {
+                    <th>@head</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var appointment in appointments)
+            {
+                <tr @key="appointment.AppointmentId">
+                    <td>@appointment.AppointmentId</td>
+                    <td>@appointment.Patient.FullName</td>
+                    <td>@appointment.Employee.FullName</td>
+                    <td>@appointment.AppointmentDate</td>
+                    <td>@appointment.Status</td>
+                    <td>@appointment.Notes</td>
+                    <td>
+                        <button type="button"
+                        @onclick="@(async () => await DetailsObjAsync(appointment.AppointmentId))"
+                        class="btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#appointmentModal">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button type="button"
+                        @onclick="@(async () => await DeleteObjAsync(appointment.AppointmentId))"
+                        class="btn">
+                            <i class="bi bi-trash text-danger"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Entities.Appointment>? appointments;
+    private List<string> headers = ["ID", "Пациент", "Врач", "Дата", "Статус", "Информация", "Действия"];
+    [SupplyParameterFromForm(FormName = "AppointmentForm")]
+    public Entities.Appointment ModelAppointment { get; set; } = new();
+    private IEnumerable<Patient>? patients;
+    private IEnumerable<Patient>? Searchpatients;
+    private IEnumerable<Employee>? doctors;
+    private IEnumerable<Employee>? Searchdoctors;
+
+    private string PatientName = "";
+    private string EmployeeName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ModelAppointment = new();
+        ModelAppointment!.AppointmentId = 0;
+        patients = await PatientService.GetAllAsync();
+        doctors = await EmployeeService.GetAllAsync();
+        appointments = await Service.GetAllAsync();
+    }
+
+    private void Discard()
+    {
+        ModelAppointment = new();
+        PatientName = "";
+        EmployeeName = "";
+    }
+    private async Task InsertObjAsync()
+    {
+
+        if (ModelAppointment!.AppointmentId == 0) { 
+            if (!IsAnyNullOrEmpty(ModelAppointment))
+            {
+                await Service.AddAsync(ModelAppointment);
+            }
+        }
+        else { await Service.UpdateAsync(ModelAppointment); }
+        appointments = await Service.GetAllAsync();
+        Discard();
+    }
+
+    private async Task DetailsObjAsync(int Id)
+    {
+        ModelAppointment = await Service.GetByIdAsync(Id);
+        EmployeeName = ModelAppointment.Employee.FullName;
+        PatientName = ModelAppointment.Patient.FullName;
+    }
+
+    private async Task DeleteObjAsync(int Id)
+    {
+        await Service.DeleteAsync(Id);
+        appointments = await Service.GetAllAsync();
+    }
+
+    private async Task SearchPatient()
+    {
+        var patient = patients.Where(e => e.FullName == PatientName).FirstOrDefault();
+        if (patient != null) { ModelAppointment.PatientId = patient.PatientId; }
+
+    }
+
+    private async Task SearchEmployee()
+    {
+        var employee = doctors.Where(e => e.FullName == EmployeeName).FirstOrDefault();
+        if (employee != null) { ModelAppointment.EmployeeId = employee.EmployeeId; }
+    }
+}

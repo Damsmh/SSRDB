@@ -1,0 +1,132 @@
+﻿@page "/services"
+@inherits OwningComponentBase<IServiceRepository>
+@rendermode InteractiveServer
+
+<PageTitle>Services</PageTitle>
+
+<div class="d-flex justify-content-between pb-5">
+    <h1>Услуги</h1>
+    <button type="button" class="btn btn-dark"
+    data-bs-toggle="modal"
+    data-bs-target="#serviceModal">
+        Добавить
+    </button>
+    <div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="serviceModalLabel">Сведения об Услуге</h5>
+                </div>
+                <EditForm Model="ModelService" OnSubmit="InsertObjAsync" FormName="ServiceForm">
+                    <div class="modal-body">
+                        <table class="table">
+                            <tr>
+                                <td>Название</td>
+                                <td><InputText @bind-Value="ModelService!.Name" /></td>
+                            </tr>
+                            <tr>
+                                <td>Стоимость</td>
+                                <td><InputNumber @bind-Value="ModelService!.Price" /></td>
+                            </tr>
+                            <tr>
+                                <td>Длительность</td>
+                                <td><InputNumber @bind-Value="ModelService!.DurationMinutes" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn border-black" data-bs-dismiss="modal" @onclick="Discard">Закрыть</button>
+                        <button type="submit" class="btn btn-dark" data-bs-dismiss="modal">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (services == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table border">
+        <thead>
+            <tr>
+                @foreach (var head in headers)
+                {
+                    <th>@head</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var service in services)
+            {
+                <tr @key="service.ServiceId">
+                    <td>@service.ServiceId</td>
+                    <td>@service.Name</td>
+                    <td>@service.Price<span> ₽</span></td>
+                    <td>@service.DurationMinutes<span> мин</span></td>
+                    <td>
+                        <button type="button"
+                        @onclick="@(async () => await DetailsObjAsync(service.ServiceId))"
+                        class="btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#serviceModal">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button type="button"
+                        @onclick="@(async () => await DeleteObjAsync(service.ServiceId))"
+                        class="btn">
+                            <i class="bi bi-trash text-danger"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Entities.Service>? services;
+    private List<string> headers = ["ID", "Название", "Стоимость", "Длительность", "Действия"];
+    [SupplyParameterFromForm(FormName = "ServiceForm")]
+    public Entities.Service ModelService { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ModelService = new();
+        ModelService!.ServiceId = 0;
+        services = await Service.GetAllAsync();
+    }
+
+    private void Discard()
+    {
+        ModelService = new();
+    }
+    private async Task InsertObjAsync()
+    {
+        if (ModelService!.ServiceId == 0)
+        {
+            if (!IsAnyNullOrEmpty(ModelService))
+            {
+                await Service.AddAsync(ModelService);
+            }
+        }
+        else { await Service.UpdateAsync(ModelService); }
+        services = await Service.GetAllAsync();
+        Discard();
+    }
+
+    private async Task DetailsObjAsync(int Id)
+    {
+        ModelService = await Service.GetByIdAsync(Id);
+    }
+
+    private async Task DeleteObjAsync(int Id)
+    {
+        await Service.DeleteAsync(Id);
+        services = await Service.GetAllAsync();
+    }
+}
