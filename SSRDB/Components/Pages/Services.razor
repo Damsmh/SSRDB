@@ -79,7 +79,7 @@ else
                         </button>
                         <button type="button"
                         @onclick="@(async () => await DeleteObjAsync(service.ServiceId))"
-                                class="btn trash">
+                        class="btn trash">
                             <i class="bi bi-trash text-danger"></i>
                         </button>
                     </td>
@@ -131,15 +131,16 @@ else
     }
     private async Task InsertObjAsync()
     {
-        if (ModelService!.ServiceId == 0)
+        if (!IsAnyNullOrEmpty(ModelService))
         {
-            if (!IsAnyNullOrEmpty(ModelService))
+            if (ModelService!.ServiceId == 0)
             {
                 await Service.AddAsync(ModelService);
             }
+            else { await Service.UpdateAsync(ModelService); }
+            services = await Service.GetAllAsync();
+            UpdatePagedData();
         }
-        else { await Service.UpdateAsync(ModelService); }
-        services = await Service.GetAllAsync();
         Discard();
     }
 
@@ -152,6 +153,7 @@ else
     {
         await Service.DeleteAsync(Id);
         services = await Service.GetAllAsync();
+        UpdatePagedData();
     }
 
     private void UpdatePagedData()

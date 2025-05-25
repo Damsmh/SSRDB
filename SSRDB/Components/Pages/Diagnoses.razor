@@ -135,7 +135,7 @@ else
     public Entities.Diagnosis? ModelDiagnose { get; set; }
     private IEnumerable<Appointment>? appointments;
 
-    private int SearchAppointmentId;
+    private int SearchAppointmentId = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -149,37 +149,40 @@ else
     private void Discard()
     {
         ModelDiagnose = new();
+        SearchAppointmentId = 0;
     }
     private async Task InsertObjAsync()
     {
-
-        if (ModelDiagnose!.DiagnosisId == 0) { 
-            if (!IsAnyNullOrEmpty(ModelDiagnose))
+        if (!IsAnyNullOrEmpty(ModelDiagnose))
+        {
+            if (ModelDiagnose!.DiagnosisId == 0)
             {
                 await Service.AddAsync(ModelDiagnose);
             }
+            else { await Service.UpdateAsync(ModelDiagnose); }
+            diagnoses = await Service.GetAllAsync();
+            UpdatePagedData();
         }
-        else { await Service.UpdateAsync(ModelDiagnose); }
-        diagnoses = await Service.GetAllAsync();
         Discard();
     }
 
     private async Task DetailsObjAsync(int Id)
     {
         ModelDiagnose = await Service.GetByIdAsync(Id);
+        SearchAppointmentId = ModelDiagnose.AppointmentId;
     }
 
     private async Task DeleteObjAsync(int Id)
     {
         await Service.DeleteAsync(Id);
         diagnoses = await Service.GetAllAsync();
+        UpdatePagedData();
     }
 
     private async Task SearchAppointment()
     {
         var appointment = appointments.Where(e => e.AppointmentId == SearchAppointmentId).FirstOrDefault();
         if (appointment != null) { ModelDiagnose.AppointmentId = appointment.AppointmentId; }
-
     }
 
     private void UpdatePagedData()

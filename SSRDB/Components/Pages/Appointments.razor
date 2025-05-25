@@ -187,14 +187,15 @@ else
     private async Task InsertObjAsync()
     {
 
-        if (ModelAppointment!.AppointmentId == 0) { 
-            if (!IsAnyNullOrEmpty(ModelAppointment))
+        if (!IsAnyNullOrEmpty(ModelAppointment)) {
+            if (ModelAppointment!.AppointmentId == 0)
             {
                 await Service.AddAsync(ModelAppointment);
             }
+            else { await Service.UpdateAsync(ModelAppointment); }
+            appointments = await Service.GetAllAsync();
+            UpdatePagedData();
         }
-        else { await Service.UpdateAsync(ModelAppointment); }
-        appointments = await Service.GetAllAsync();
         Discard();
     }
 
@@ -209,6 +210,7 @@ else
     {
         await Service.DeleteAsync(Id);
         appointments = await Service.GetAllAsync();
+        UpdatePagedData();
     }
 
     private async Task SearchPatient()

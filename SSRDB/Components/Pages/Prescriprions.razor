@@ -171,15 +171,15 @@ else
     }
     private async Task InsertObjAsync()
     {
-
-        if (ModelPrescription!.PrescriptionId == 0) { 
-            if (!IsAnyNullOrEmpty(ModelPrescription))
+        if (!IsAnyNullOrEmpty(ModelPrescription)) {
+            if (ModelPrescription!.PrescriptionId == 0)
             {
                 await Service.AddAsync(ModelPrescription);
             }
+            else { await Service.UpdateAsync(ModelPrescription); }
+            prescriptions = await Service.GetAllAsync();
+            UpdatePagedData();
         }
-        else { await Service.UpdateAsync(ModelPrescription); }
-        prescriptions = await Service.GetAllAsync();
         Discard();
     }
 
@@ -194,6 +194,7 @@ else
     {
         await Service.DeleteAsync(Id);
         prescriptions = await Service.GetAllAsync();
+        UpdatePagedData();
     }
 
     private async Task SearchDiagnosis()

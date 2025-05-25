@@ -143,8 +143,8 @@ else
     private IEnumerable<Appointment>? appointments;
     private IEnumerable<Service>? services;
 
-    private int? SearchAppointmentId;
-    private string? SearchServiceName;
+    private int SearchAppointmentId = 0;
+    private string SearchServiceName = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -159,18 +159,21 @@ else
     private void Discard()
     {
         ModelAppointmentService = new();
+        SearchAppointmentId = 0;
+        SearchServiceName = "";
     }
     private async Task InsertObjAsync()
     {
 
-        if (ModelAppointmentService!.AppointmentServiceId == 0) { 
-            if (!IsAnyNullOrEmpty(ModelAppointmentService))
+        if (!IsAnyNullOrEmpty(ModelAppointmentService)) {
+            if (ModelAppointmentService!.AppointmentServiceId == 0)
             {
                 await Service.AddAsync(ModelAppointmentService);
             }
+            else { await Service.UpdateAsync(ModelAppointmentService); }
+            appointmentServices = await Service.GetAllAsync();
+            UpdatePagedData();
         }
-        else { await Service.UpdateAsync(ModelAppointmentService); }
-        appointmentServices = await Service.GetAllAsync();
         Discard();
     }
 
@@ -183,6 +186,7 @@ else
     {
         await Service.DeleteAsync(Id);
         appointmentServices = await Service.GetAllAsync();
+        UpdatePagedData();
     }
 
     private async Task SearchAppointment()

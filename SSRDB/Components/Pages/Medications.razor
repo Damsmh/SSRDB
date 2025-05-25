@@ -133,9 +133,14 @@ else
     }
     private async Task InsertObjAsync()
     {
-        if (ModelMedication!.MedicationId == 0) { await Service.AddAsync(ModelMedication); }
-        else { await Service.UpdateAsync(ModelMedication); }
-        medications = await Service.GetAllAsync();
+        if (!IsAnyNullOrEmpty(ModelMedication))
+        {
+            if (ModelMedication!.MedicationId == 0) { await Service.AddAsync(ModelMedication); }
+            else { await Service.UpdateAsync(ModelMedication); }
+            medications = await Service.GetAllAsync();
+            UpdatePagedData();
+        }
+        
         Discard();
     }
 
@@ -148,6 +153,7 @@ else
     {
         await Service.DeleteAsync(Id);
         medications = await Service.GetAllAsync();
+        UpdatePagedData();
     }
 
     private void UpdatePagedData()
