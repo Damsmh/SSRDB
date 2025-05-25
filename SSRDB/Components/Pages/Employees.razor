@@ -66,7 +66,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var employee in employees)
+            @foreach (var employee in pagedemployees)
             {
                 <tr @key="employee.EmployeeId">
                     <td class="align-middle">@employee.EmployeeId</td>
@@ -84,7 +84,7 @@ else
                         </button>
                         <button type="button"
                         @onclick="@(async () => await DeleteObjAsync(employee.EmployeeId))"
-                                class="btn trash">
+                        class="btn trash">
                             <i class="bi bi-trash text-danger"></i>
                         </button>
                     </td>
@@ -92,10 +92,32 @@ else
             }
         </tbody>
     </table>
+
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">Предыдущая</button>
+            </li>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                var page = i;
+                <li class="page-item @(currentPage == page ? "active" : "")">
+                    <button class="page-link" @onclick="() => ChangePage(page)">@i</button>
+                </li>
+            }
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">Следующая</button>
+            </li>
+        </ul>
+    </nav>
 }
 
 @code {
     private IEnumerable<Entities.Employee>? employees;
+    private IEnumerable<Employee>? pagedemployees;
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalPages;
     private List<string> headers = ["ID", "ФИО", "Специализация", "Номер лицензии", "Телефон", "Действия"];
     [SupplyParameterFromForm(FormName = "EmployeeForm")]
     public Entities.Employee? ModelEmployee { get; set; }
@@ -105,6 +127,7 @@ else
         ModelEmployee ??= new();
         ModelEmployee!.EmployeeId = 0;
         employees = await Service.GetAllAsync();
+        UpdatePagedData();
     }
 
     private void Discard()
@@ -133,5 +156,21 @@ else
     {
         await Service.DeleteAsync(Id);
         employees = await Service.GetAllAsync();
+    }
+
+    private void UpdatePagedData()
+    {
+        totalPages = (int)Math.Ceiling((double)employees.Count() / pageSize);
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        int startIndex = (currentPage - 1) * pageSize;
+        pagedemployees = employees.Skip(startIndex).Take(pageSize);
+    }
+
+    private void ChangePage(int newPage)
+    {
+        currentPage = newPage;
+        UpdatePagedData();
     }
 }

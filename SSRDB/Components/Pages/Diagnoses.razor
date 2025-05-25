@@ -78,7 +78,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var diagnose in diagnoses)
+            @foreach (var diagnose in pageddiagnoses)
             {
                 <tr @key="diagnose.DiagnosisId">
                     <td class="align-middle">@diagnose.DiagnosisId</td>
@@ -104,10 +104,32 @@ else
             }
         </tbody>
     </table>
+
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">Предыдущая</button>
+            </li>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                var page = i;
+                <li class="page-item @(currentPage == page ? "active" : "")">
+                    <button class="page-link" @onclick="() => ChangePage(page)">@i</button>
+                </li>
+            }
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">Следующая</button>
+            </li>
+        </ul>
+    </nav>
 }
 
 @code {
     private IEnumerable<Entities.Diagnosis>? diagnoses;
+    private IEnumerable<Diagnosis>? pageddiagnoses;
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalPages;
     private List<string> headers = ["ID", "Номер приёма", "Код(МКБ-10)", "Описание", "Рекомендации", "Действия"];
     [SupplyParameterFromForm(FormName = "DiagnoseForm")]
     public Entities.Diagnosis? ModelDiagnose { get; set; }
@@ -121,6 +143,7 @@ else
         ModelDiagnose!.DiagnosisId = 0;
         diagnoses = await Service.GetAllAsync();
         appointments = await AppointmentService.GetAllAsync();
+        UpdatePagedData();
     }
 
     private void Discard()
@@ -157,5 +180,21 @@ else
         var appointment = appointments.Where(e => e.AppointmentId == SearchAppointmentId).FirstOrDefault();
         if (appointment != null) { ModelDiagnose.AppointmentId = appointment.AppointmentId; }
 
+    }
+
+    private void UpdatePagedData()
+    {
+        totalPages = (int)Math.Ceiling((double)diagnoses.Count() / pageSize);
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        int startIndex = (currentPage - 1) * pageSize;
+        pageddiagnoses = diagnoses.Skip(startIndex).Take(pageSize);
+    }
+
+    private void ChangePage(int newPage)
+    {
+        currentPage = newPage;
+        UpdatePagedData();
     }
 }

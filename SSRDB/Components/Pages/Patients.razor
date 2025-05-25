@@ -33,7 +33,7 @@
                                 <td>Пол</td>
                                 <td>
                                     <InputSelect class="form-select form-select-sm w-auto"
-                                        @bind-Value="ModelPatient!.Gender">
+                                    @bind-Value="ModelPatient!.Gender">
                                         <option value="М">М</option>
                                         <option value="Ж">Ж</option>
                                     </InputSelect>
@@ -84,7 +84,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var patient in patients)
+            @foreach (var patient in pagedPatients)
             {
                 <tr @key="patient.PatientId">
                     <td class="align-middle">@patient.PatientId</td>
@@ -115,19 +115,42 @@ else
             }
         </tbody>
     </table>
+
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">Предыдущая</button>
+            </li>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                var page = i;
+                <li class="page-item @(currentPage == page ? "active" : "")">
+                    <button class="page-link" @onclick="() => ChangePage(page)">@i</button>
+                </li>
+            }
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">Следующая</button>
+            </li>
+        </ul>
+    </nav>
 }
 
 @code {
-    private IEnumerable<Entities.Patient>? patients;
+    private IEnumerable<Patient>? patients;
+    private IEnumerable<Patient>? pagedPatients;
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalPages;
     private List<string> headers = ["ID", "ФИО", "Дата рождения", "Пол", "Паспорт", "Телефон", "Почта", "Адрес", "Действия"];
     [SupplyParameterFromForm(FormName = "PatientForm")]
-    public Entities.Patient? ModelPatient { get; set; }
+    public Patient? ModelPatient { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         ModelPatient ??= new();
         ModelPatient!.PatientId = 0;
         patients = await Service.GetAllAsync();
+        UpdatePagedData();
     }
 
     private void Discard()
@@ -151,5 +174,21 @@ else
     {
         await Service.DeleteAsync(Id);
         patients = await Service.GetAllAsync();
+    }
+
+    private void UpdatePagedData()
+    {
+        totalPages = (int)Math.Ceiling((double)patients.Count() / pageSize);
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        int startIndex = (currentPage - 1) * pageSize;
+        pagedPatients = patients.Skip(startIndex).Take(pageSize);
+    }
+
+    private void ChangePage(int newPage)
+    {
+        currentPage = newPage;
+        UpdatePagedData();
     }
 }

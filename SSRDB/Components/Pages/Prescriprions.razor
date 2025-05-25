@@ -90,7 +90,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var prescription in prescriptions)
+            @foreach (var prescription in pagedprescriptions)
             {
                 <tr @key="prescription.PrescriptionId">
                     <td class="align-middle">@prescription.PrescriptionId</td>
@@ -116,10 +116,32 @@ else
             }
         </tbody>
     </table>
+
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">Предыдущая</button>
+            </li>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                var page = i;
+                <li class="page-item @(currentPage == page ? "active" : "")">
+                    <button class="page-link" @onclick="() => ChangePage(page)">@i</button>
+                </li>
+            }
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">Следующая</button>
+            </li>
+        </ul>
+    </nav>
 }
 
 @code {
     private IEnumerable<Entities.Prescription>? prescriptions;
+    private IEnumerable<Prescription>? pagedprescriptions;
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalPages;
     private List<string> headers = ["ID", "Код диагноза(МКБ-10)", "Медикамент", "Доза", "Период применения", "Действия"];
     [SupplyParameterFromForm(FormName = "PrescriptionForm")]
     public Entities.Prescription? ModelPrescription { get; set; }
@@ -138,6 +160,7 @@ else
         diagnoses = await DiagnosisService.GetAllAsync();
         medications = await MedicationService.GetAllAsync();
         prescriptions = await Service.GetAllAsync();
+        UpdatePagedData();
     }
 
     private void Discard()
@@ -184,5 +207,21 @@ else
     {
         var medication = medications.Where(e => e.Name == MedicationName).FirstOrDefault();
         if (medication != null) { ModelPrescription.MedicationId = medication.MedicationId; }
+    }
+
+    private void UpdatePagedData()
+    {
+        totalPages = (int)Math.Ceiling((double)prescriptions.Count() / pageSize);
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        int startIndex = (currentPage - 1) * pageSize;
+        pagedprescriptions = prescriptions.Skip(startIndex).Take(pageSize);
+    }
+
+    private void ChangePage(int newPage)
+    {
+        currentPage = newPage;
+        UpdatePagedData();
     }
 }

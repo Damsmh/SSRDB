@@ -115,3 +115,49 @@ main {
     color: black !important;
     background-color: darkgray !important;
 }
+
+pagination {
+    --bs-pagination-color: #000000 !important; /* Черный цвет текста */
+    --bs-pagination-bg: #ffffff !important; /* Белый фон */
+    --bs-pagination-border-color: #000000 !important; /* Черная рамка */
+    --bs-pagination-hover-color: #ffffff !important; /* Белый текст при наведении */
+    --bs-pagination-hover-bg: #000000 !important; /* Черный фон при наведении */
+    --bs-pagination-active-color: #ffffff !important; /* Белый текст для активной кнопки */
+    --bs-pagination-active-bg: #000000 !important; /* Черный фон для активной кнопки */
+    --bs-pagination-active-border-color: #000000 !important; /* Черная рамка для активной кнопки */
+    --bs-pagination-focus-box-shadow: none !important; /* Убираем синюю тень при фокусе */
+}
+
+/* Убираем синюю рамку при фокусе */
+.page-link:focus {
+    outline: none !important; /* Убираем стандартную outline-рамку */
+    box-shadow: none !important; /* Убираем тень фокуса */
+}
+
+/* Стили для элементов пагинации */
+.page-item .page-link {
+    color: #000000 !important; /* Черный цвет текста */
+    background-color: #ffffff !important; /* Белый фон */
+    border-color: #000000 !important; /* Черная рамка */
+}
+
+    /* Стили для наведения на кнопку */
+    .page-item .page-link:hover {
+        color: #ffffff !important; /* Белый текст при наведении */
+        background-color: #000000 !important; /* Черный фон при наведении */
+    }
+
+/* Стили для активной кнопки */
+.page-item.active .page-link {
+    color: #ffffff !important; /* Белый текст */
+    background-color: #000000 !important; /* Черный фон */
+    border-color: #000000 !important; /* Черная рамка */
+}
+
+/* Стили для отключенных кнопок */
+.page-item.disabled .page-link {
+    color: #000000 !important; /* Черный текст для отключенных */
+    background-color: #ffffff !important; /* Белый фон */
+    border-color: #000000 !important; /* Черная рамка */
+    opacity: 0.5 !important; /* Легкая прозрачность для отключенных */
+}

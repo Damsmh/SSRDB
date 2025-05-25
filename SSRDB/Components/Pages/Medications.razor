@@ -62,7 +62,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var medication in medications)
+            @foreach (var medication in pagedmedications)
             {
                 <tr @key="medication.MedicationId">
                     <td class="align-middle">@medication.MedicationId</td>
@@ -89,10 +89,32 @@ else
             }
         </tbody>
     </table>
+
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">Предыдущая</button>
+            </li>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                var page = i;
+                <li class="page-item @(currentPage == page ? "active" : "")">
+                    <button class="page-link" @onclick="() => ChangePage(page)">@i</button>
+                </li>
+            }
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">Следующая</button>
+            </li>
+        </ul>
+    </nav>
 }
 
 @code {
     private IEnumerable<Entities.Medication>? medications;
+    private IEnumerable<Medication>? pagedmedications;
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalPages;
     private List<string> headers = ["ID", "Название", "Производитель", "Цена", "Действия"];
     [SupplyParameterFromForm(FormName = "MedicationForm")]
     public Entities.Medication? ModelMedication { get; set; }
@@ -102,6 +124,7 @@ else
         ModelMedication ??= new();
         ModelMedication!.MedicationId = 0;
         medications = await Service.GetAllAsync();
+        UpdatePagedData();
     }
 
     private void Discard()
@@ -125,5 +148,21 @@ else
     {
         await Service.DeleteAsync(Id);
         medications = await Service.GetAllAsync();
+    }
+
+    private void UpdatePagedData()
+    {
+        totalPages = (int)Math.Ceiling((double)medications.Count() / pageSize);
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        int startIndex = (currentPage - 1) * pageSize;
+        pagedmedications = medications.Skip(startIndex).Take(pageSize);
+    }
+
+    private void ChangePage(int newPage)
+    {
+        currentPage = newPage;
+        UpdatePagedData();
     }
 }

@@ -86,7 +86,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var appointmentService in appointmentServices)
+            @foreach (var appointmentService in pagedappointmentServices)
             {
                 <tr @key="appointmentService.AppointmentServiceId">
                     <td class="align-middle">@appointmentService.AppointmentServiceId</td>
@@ -111,10 +111,32 @@ else
             }
         </tbody>
     </table>
+
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">Предыдущая</button>
+            </li>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                var page = i;
+                <li class="page-item @(currentPage == page ? "active" : "")">
+                    <button class="page-link" @onclick="() => ChangePage(page)">@i</button>
+                </li>
+            }
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">Следующая</button>
+            </li>
+        </ul>
+    </nav>
 }
 
 @code {
     private IEnumerable<Entities.AppointmentService>? appointmentServices;
+    private IEnumerable<AppointmentService>? pagedappointmentServices;
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalPages;
     private List<string> headers = ["ID", "Номер приёма", "Услуга", "Результат", "Действия"];
     [SupplyParameterFromForm(FormName = "AppointmentServiceForm")]
     public Entities.AppointmentService? ModelAppointmentService { get; set; }
@@ -131,6 +153,7 @@ else
         appointmentServices = await Service.GetAllAsync();
         appointments = await AppointmentService.GetAllAsync();
         services = await ServiceService.GetAllAsync();
+        UpdatePagedData();
     }
 
     private void Discard()
@@ -174,5 +197,21 @@ else
         var service = services.Where(e => e.Name == SearchServiceName).FirstOrDefault();
         if (service != null) { ModelAppointmentService.ServiceId = service.ServiceId; }
 
+    }
+
+    private void UpdatePagedData()
+    {
+        totalPages = (int)Math.Ceiling((double)appointmentServices.Count() / pageSize);
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        int startIndex = (currentPage - 1) * pageSize;
+        pagedappointmentServices = appointmentServices.Skip(startIndex).Take(pageSize);
+    }
+
+    private void ChangePage(int newPage)
+    {
+        currentPage = newPage;
+        UpdatePagedData();
     }
 }
