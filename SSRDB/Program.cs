@@ -8,12 +8,15 @@ namespace SSRDB
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            var initializer = new DatabaseInitializer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            await initializer.InitializeDatabaseAsync();
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options

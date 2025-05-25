@@ -76,10 +76,14 @@
 else
 {
     <div class="d-flex p-2">
-        <label for="Names" class="form-label">Поиск по ФИО</label>
-        <input class="form-control" id="Names" placeholder="Введите имя..." @bind="PatientName" @bind:event="oninput" @bind:after="SearchByPatientName">
-        <label for="Passport" class="form-label">Поиск по Паспорту</label>
-        <input class="form-control" id="Passport" placeholder="Введите номер паспорта" @bind="PassportNumber" @bind:event="oninput" @bind:after="SearchByPassport">
+        <div>
+            <label for="Names" class="form-label">Поиск по ФИО</label>
+            <input class="form-control" id="Names" placeholder="Введите имя..." @bind="PatientName" @bind:event="oninput" @bind:after="SearchByPatientName">
+        </div>
+        <div>
+            <label for="Passport" class="form-label">Поиск по Паспорту</label>
+            <input class="form-control" id="Passport" placeholder="Введите номер паспорта" @bind="PassportNumber" @bind:event="oninput" @bind:after="SearchByPassport">
+        </div>
     </div>
 
     <table class="table border">

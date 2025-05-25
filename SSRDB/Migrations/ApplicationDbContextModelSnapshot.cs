@@ -60,24 +60,22 @@ namespace SSRDB.Migrations
 
             modelBuilder.Entity("SSRDB.Entities.AppointmentService", b =>
                 {
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("AppointmentServiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AppointmentServiceId"));
 
-                    b.Property<int>("AppointmentId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Result")
                         .HasColumnType("text");
 
-                    b.Property<int>("ServiceId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("AppointmentServiceId");
-
-                    b.HasIndex("AppointmentId");
+                    b.HasKey("AppointmentId", "ServiceId");
 
                     b.HasIndex("ServiceId");
 
@@ -109,8 +107,7 @@ namespace SSRDB.Migrations
 
                     b.HasKey("DiagnosisId");
 
-                    b.HasIndex("AppointmentId")
-                        .IsUnique();
+                    b.HasIndex("AppointmentId");
 
                     b.ToTable("Diagnoses");
                 });
@@ -300,8 +297,8 @@ namespace SSRDB.Migrations
             modelBuilder.Entity("SSRDB.Entities.Diagnosis", b =>
                 {
                     b.HasOne("SSRDB.Entities.Appointment", "Appointment")
-                        .WithOne("Diagnosis")
-                        .HasForeignKey("SSRDB.Entities.Diagnosis", "AppointmentId")
+                        .WithMany("Diagnoses")
+                        .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -331,8 +328,7 @@ namespace SSRDB.Migrations
                 {
                     b.Navigation("AppointmentServices");
 
-                    b.Navigation("Diagnosis")
-                        .IsRequired();
+                    b.Navigation("Diagnoses");
                 });
 
             modelBuilder.Entity("SSRDB.Entities.Diagnosis", b =>

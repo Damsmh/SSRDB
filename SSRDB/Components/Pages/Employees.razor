@@ -58,12 +58,18 @@
 else
 {
     <div class="d-flex p-2">
-        <label for="Names" class="form-label">Поиск по ФИО</label>
-        <input class="form-control" id="Names" placeholder="Введите имя..." @bind="EmployeeName" @bind:event="oninput" @bind:after="SearchByEmployeeName">
-        <label for="Specialization" class="form-label">Поиск по Паспорту</label>
-        <input class="form-control" id="Specialization" placeholder="Введите специальность..." @bind="Specialization" @bind:event="oninput" @bind:after="SearchBySpecialization">
-        <label for="License" class="form-label">Поиск по Паспорту</label>
-        <input class="form-control" id="License" placeholder="Введите номер лицензии..." @bind="License" @bind:event="oninput" @bind:after="SearchByLicense">
+       <div>
+            <label for="Names" class="form-label">Поиск по ФИО</label>
+            <input class="form-control" id="Names" placeholder="Введите имя..." @bind="EmployeeName" @bind:event="oninput" @bind:after="SearchByEmployeeName">
+       </div>
+       <div>
+            <label for="Specialization" class="form-label">Поиск по специальности</label>
+            <input class="form-control" id="Specialization" placeholder="Введите специальность..." @bind="Specialization" @bind:event="oninput" @bind:after="SearchBySpecialization">
+       </div>
+       <div>
+            <label for="License" class="form-label">Поиск по номеру лицензии</label>
+            <input class="form-control" id="License" placeholder="Введите номер лицензии..." @bind="License" @bind:event="oninput" @bind:after="SearchByLicense">
+       </div>
     </div>
 
     <table class="table border">

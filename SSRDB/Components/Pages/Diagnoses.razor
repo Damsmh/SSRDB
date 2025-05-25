@@ -70,10 +70,14 @@
 else
 {
     <div class="d-flex p-2">
-        <label for="Appointments" class="form-label">Поиск по пациентам</label>
-        <input class="form-control" id="Appointments" placeholder="Введите номер приёма..." @bind="SearchAppointmentId" @bind:event="oninput" @bind:after="SearchByAppointmentId">
-        <label for="DiagnosisCode" class="form-label">Поиск по пациентам</label>
-        <input class="form-control" id="DiagnosisCode" placeholder="Введите имя врача..." @bind="SearchCode" @bind:event="oninput" @bind:after="SearchByDiagnosisCode">
+        <div>
+            <label for="Appointments" class="form-label">Поиск по номеру приёма</label>
+            <input class="form-control" type="number" id="Appointments" placeholder="Введите номер приёма..." @bind="SearchAppointmentId" @bind:event="oninput" @bind:after="SearchByAppointmentId">
+        </div>
+        <div>
+            <label for="DiagnosisCode" class="form-label">Поиск по коду диагноза</label>
+            <input class="form-control" id="DiagnosisCode" placeholder="Введите код диагноза..." @bind="SearchCode" @bind:event="oninput" @bind:after="SearchByDiagnosisCode">
+        </div>
     </div>
     <table class="table border">
         <thead>

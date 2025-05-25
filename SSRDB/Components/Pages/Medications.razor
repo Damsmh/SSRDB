@@ -54,10 +54,14 @@
 else
 {
     <div class="d-flex p-2">
-        <label for="Name" class="form-label">Поиск по названию</label>
-        <input class="form-control" id="Name" placeholder="Введите название..." @bind="Name" @bind:event="oninput" @bind:after="SearchByName">
-        <label for="Manufacturer" class="form-label">Поиск по производителям</label>
-        <input class="form-control" id="Manufacturer" placeholder="Введите производителя..." @bind="Manufacturer" @bind:event="oninput" @bind:after="SearchByManufacturer">
+        <div>
+            <label for="Name" class="form-label">Поиск по названию</label>
+            <input class="form-control" id="Name" placeholder="Введите название..." @bind="Name" @bind:event="oninput" @bind:after="SearchByName">
+        </div>
+        <div>
+            <label for="Manufacturer" class="form-label">Поиск по производителям</label>
+            <input class="form-control" id="Manufacturer" placeholder="Введите производителя..." @bind="Manufacturer" @bind:event="oninput" @bind:after="SearchByManufacturer">
+        </div>
     </div>
     <table class="table border">
         <thead>

@@ -12,8 +12,8 @@ using SSRDB.Data;
 namespace SSRDB.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250524184828_EditFetch")]
-    partial class EditFetch
+    [Migration("20250525203401_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,9 +39,6 @@ namespace SSRDB.Migrations
                     b.Property<DateTime>("AppointmentDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("DiagnosisId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("EmployeeId")
                         .HasColumnType("integer");
 
@@ -57,8 +54,6 @@ namespace SSRDB.Migrations
 
                     b.HasKey("AppointmentId");
 
-                    b.HasIndex("DiagnosisId");
-
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("PatientId");
@@ -68,24 +63,22 @@ namespace SSRDB.Migrations
 
             modelBuilder.Entity("SSRDB.Entities.AppointmentService", b =>
                 {
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("AppointmentServiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AppointmentServiceId"));
 
-                    b.Property<int>("AppointmentId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Result")
                         .HasColumnType("text");
 
-                    b.Property<int>("ServiceId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("AppointmentServiceId");
-
-                    b.HasIndex("AppointmentId");
+                    b.HasKey("AppointmentId", "ServiceId");
 
                     b.HasIndex("ServiceId");
 
@@ -100,6 +93,9 @@ namespace SSRDB.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DiagnosisId"));
 
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
@@ -113,6 +109,8 @@ namespace SSRDB.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("DiagnosisId");
+
+                    b.HasIndex("AppointmentId");
 
                     b.ToTable("Diagnoses");
                 });
@@ -263,12 +261,6 @@ namespace SSRDB.Migrations
 
             modelBuilder.Entity("SSRDB.Entities.Appointment", b =>
                 {
-                    b.HasOne("SSRDB.Entities.Diagnosis", "Diagnosis")
-                        .WithMany("Appointments")
-                        .HasForeignKey("DiagnosisId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SSRDB.Entities.Employee", "Employee")
                         .WithMany("Appointments")
                         .HasForeignKey("EmployeeId")
@@ -280,8 +272,6 @@ namespace SSRDB.Migrations
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Diagnosis");
 
                     b.Navigation("Employee");
 
@@ -307,6 +297,17 @@ namespace SSRDB.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("SSRDB.Entities.Diagnosis", b =>
+                {
+                    b.HasOne("SSRDB.Entities.Appointment", "Appointment")
+                        .WithMany("Diagnoses")
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+                });
+
             modelBuilder.Entity("SSRDB.Entities.Prescription", b =>
                 {
                     b.HasOne("SSRDB.Entities.Diagnosis", "Diagnosis")
@@ -329,12 +330,12 @@ namespace SSRDB.Migrations
             modelBuilder.Entity("SSRDB.Entities.Appointment", b =>
                 {
                     b.Navigation("AppointmentServices");
+
+                    b.Navigation("Diagnoses");
                 });
 
             modelBuilder.Entity("SSRDB.Entities.Diagnosis", b =>
                 {
-                    b.Navigation("Appointments");
-
                     b.Navigation("Prescriptions");
                 });
 
