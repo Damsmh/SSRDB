@@ -9,7 +9,12 @@ namespace SSRDB.Repositories
 {
     public class DiagnosisRepository(ApplicationDbContext context) : IDiagnosisRepository
     {
-
+        private readonly Dictionary<string, string> columnTranslate = new()
+        {
+            {"ID", "DiagnosisId"},
+            {"Номер приёма", "AppointmentId"},
+            {"Код(МКБ-10)", "DiagnosisCode"},
+        };
         public async Task<IEnumerable<Diagnosis>> GetAllAsync()
         {
             return await context.Diagnoses
@@ -40,6 +45,19 @@ namespace SSRDB.Repositories
             INSERT INTO "Diagnoses" ("DiagnosisCode", "Description", "Recommendations", "AppointmentId")
             VALUES (@DiagnosisCode, @Description, @Recommendations, @AppointmentId)
             """, parameters);
+        }
+
+        public async Task<IEnumerable<Diagnosis>?> SortByColumn(string column, string method)
+        {
+            if (!columnTranslate.TryGetValue(column, out string? columnName))
+            {
+                return null;
+            }
+            var safeColumnName = $"\"{columnName}\"";
+
+            return await context.Diagnoses
+                .FromSqlRaw($"""SELECT * FROM "Diagnoses" ORDER BY {safeColumnName} {method}""")
+                .ToListAsync();
         }
 
         public async Task UpdateAsync(Diagnosis diagnosis)

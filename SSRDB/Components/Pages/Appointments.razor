@@ -2,6 +2,7 @@
 @inherits OwningComponentBase<IAppointmentRepository>
 @inject IPatientRepository PatientService
 @inject IEmployeeRepository EmployeeService
+@attribute [StreamRendering]
 @rendermode InteractiveServer
 
 <PageTitle>Appointments</PageTitle>
@@ -56,7 +57,7 @@
                             <tr>
                                 <td>Дата</td>
                                 <td>
-                                    <input type="datetime-local" @bind="ModelAppointment!.AppointmentDate"></input>
+                                    <input type="datetime-local" class="form-control" @bind="ModelAppointment!.AppointmentDate"></input>
                                 </td>
                             </tr>
                             <tr>
@@ -73,7 +74,7 @@
                             </tr>
                             <tr>
                                 <td>Информация</td>
-                                <td><InputText @bind-Value="ModelAppointment!.Notes" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelAppointment!.Notes" /></td>
                             </tr>
                         </table>
                     </div>
@@ -99,7 +100,15 @@ else
             <tr>
                 @foreach (var head in headers)
                 {
-                    <th>@head</th>
+                <th>
+                    <button class="btn" @onclick="@(async () => await SortByColumnHead(head))">
+                    @head
+                    @if (currentSortColumn == head)
+                    {
+                        <span>@(sorted ? "↑" : "↓")</span>
+                    }
+                    </button>
+                </th>
                 }
             </tr>
         </thead>
@@ -152,21 +161,24 @@ else
 }
 
 @code {
-    private IEnumerable<Entities.Appointment>? appointments;
+    private IEnumerable<Appointment>? appointments;
     private IEnumerable<Appointment>? pagedappointments;
     private int currentPage = 1;
     private int pageSize = 10;
     private int totalPages;
     private List<string> headers = ["ID", "Пациент", "Врач", "Дата", "Статус", "Информация", "Действия"];
     [SupplyParameterFromForm(FormName = "AppointmentForm")]
-    public Entities.Appointment? ModelAppointment { get; set; }
+    public Appointment? ModelAppointment { get; set; }
     private IEnumerable<Patient>? patients;
     private IEnumerable<Patient>? Searchpatients;
     private IEnumerable<Employee>? doctors;
     private IEnumerable<Employee>? Searchdoctors;
+    private bool sorted;
+    private string currentSortColumn;
 
     private string PatientName = "";
     private string EmployeeName = "";
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -240,5 +252,29 @@ else
     {
         currentPage = newPage;
         UpdatePagedData();
+    }
+
+    private async Task SortByColumnHead(string column)
+    {
+        currentSortColumn = column;
+        if (!sorted)
+        {
+            var sortedList = await Service.SortByColumn(column, "ASC");
+            if (sortedList != null)
+            {
+                appointments = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        } else
+        {
+            var sortedList = await Service.SortByColumn(column, "DESC");
+            if (sortedList != null)
+            {
+                appointments = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
     }
 }

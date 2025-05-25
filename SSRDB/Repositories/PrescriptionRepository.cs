@@ -9,6 +9,13 @@ namespace SSRDB.Repositories
 {
     public class PrescriptionRepository(ApplicationDbContext context) : IPrescriptionRepository
     {
+        private readonly Dictionary<string, string> columnTranslate = new()
+        {
+            {"ID", "PrescriprionId"},
+            {"Код диагноза(МКБ-10)", "DiagnosisId"},
+            {"Медикамент", "MedicationId"},
+            {"Доза", "Dosage"},
+        };
         public async Task<IEnumerable<Prescription>> GetAllAsync()
         {
             return await context.Prescriptions
@@ -37,6 +44,19 @@ namespace SSRDB.Repositories
             var MedicationId = new NpgsqlParameter("MedicationId", id);
             return await context.Prescriptions
                 .FromSqlRaw($"""SELECT * FROM "Prescriptions" WHERE "MedicationId" = @MedicationId""", MedicationId)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Prescription>?> SortByColumn(string column, string method)
+        {
+            if (!columnTranslate.TryGetValue(column, out string? columnName))
+            {
+                return null;
+            }
+            var safeColumnName = $"\"{columnName}\"";
+
+            return await context.Prescriptions
+                .FromSqlRaw($"""SELECT * FROM "Prescriptions" ORDER BY {safeColumnName} {method}""")
                 .ToListAsync();
         }
 

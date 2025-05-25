@@ -1,5 +1,6 @@
 ﻿@page "/services"
 @inherits OwningComponentBase<IServiceRepository>
+@attribute [StreamRendering]
 @rendermode InteractiveServer
 
 <PageTitle>Services</PageTitle>
@@ -23,15 +24,15 @@
                         <table class="table">
                             <tr>
                                 <td>Название</td>
-                                <td><InputText @bind-Value="ModelService!.Name" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelService!.Name" /></td>
                             </tr>
                             <tr>
                                 <td>Стоимость</td>
-                                <td><InputNumber @bind-Value="ModelService!.Price" /></td>
+                                <td><InputNumber class="form-control" @bind-Value="ModelService!.Price" /></td>
                             </tr>
                             <tr>
                                 <td>Длительность</td>
-                                <td><InputNumber @bind-Value="ModelService!.DurationMinutes" /></td>
+                                <td><InputNumber class="form-control" @bind-Value="ModelService!.DurationMinutes" /></td>
                             </tr>
                         </table>
                     </div>
@@ -57,7 +58,15 @@ else
             <tr>
                 @foreach (var head in headers)
                 {
-                    <th>@head</th>
+                    <th>
+                        <button class="btn" @onclick="@(async () => await SortByColumnHead(head))">
+                            @head
+                            @if (currentSortColumn == head)
+                            {
+                                <span>@(sorted ? "↑" : "↓")</span>
+                            }
+                        </button>
+                    </th>
                 }
             </tr>
         </thead>
@@ -116,6 +125,8 @@ else
     private List<string> headers = ["ID", "Название", "Стоимость", "Длительность", "Действия"];
     [SupplyParameterFromForm(FormName = "ServiceForm")]
     public Entities.Service? ModelService { get; set; }
+    private bool sorted;
+    private string currentSortColumn;
 
     protected override async Task OnInitializedAsync()
     {
@@ -170,5 +181,30 @@ else
     {
         currentPage = newPage;
         UpdatePagedData();
+    }
+
+    private async Task SortByColumnHead(string column)
+    {
+        currentSortColumn = column;
+        if (!sorted)
+        {
+            var sortedList = await Service.SortByColumn(column, "ASC");
+            if (sortedList != null)
+            {
+                services = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
+        else
+        {
+            var sortedList = await Service.SortByColumn(column, "DESC");
+            if (sortedList != null)
+            {
+                services = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
     }
 }

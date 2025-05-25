@@ -1,5 +1,6 @@
 ﻿@page "/patients"
 @inherits OwningComponentBase<IPatientRepository>
+@attribute [StreamRendering]
 @rendermode InteractiveServer
 
 <PageTitle>Patients</PageTitle>
@@ -23,11 +24,11 @@
                         <table class="table">
                             <tr>
                                 <td>ФИО</td>
-                                <td><InputText @bind-Value="ModelPatient!.FullName" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelPatient!.FullName" /></td>
                             </tr>
                             <tr>
                                 <td>Дата рождения</td>
-                                <td><InputDate @bind-Value="ModelPatient!.BirthDate" /></td>
+                                <td><InputDate class="form-control" @bind-Value="ModelPatient!.BirthDate" /></td>
                             </tr>
                             <tr>
                                 <td>Пол</td>
@@ -41,19 +42,19 @@
                             </tr>
                             <tr>
                                 <td>Паспорт</td>
-                                <td><InputText @bind-Value="ModelPatient!.PassportNumber" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelPatient!.PassportNumber" /></td>
                             </tr>
                             <tr>
                                 <td>Телефон</td>
-                                <td><InputText @bind-Value="ModelPatient!.Phone" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelPatient!.Phone" /></td>
                             </tr>
                             <tr>
                                 <td>Почта</td>
-                                <td><InputText type="email" @bind-Value="ModelPatient!.Email" /></td>
+                                <td><InputText class="form-control" type="email" @bind-Value="ModelPatient!.Email" /></td>
                             </tr>
                             <tr>
                                 <td>Адрес</td>
-                                <td><InputText @bind-Value="ModelPatient!.Address" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelPatient!.Address" /></td>
                             </tr>
                         </table>
                     </div>
@@ -79,7 +80,15 @@ else
             <tr>
                 @foreach (var head in headers)
                 {
-                    <th>@head</th>
+                    <th>
+                        <button class="btn" @onclick="@(async () => await SortByColumnHead(head))">
+                            @head
+                            @if (currentSortColumn == head)
+                            {
+                                <span>@(sorted ? "↑" : "↓")</span>
+                            }
+                        </button>
+                    </th>
                 }
             </tr>
         </thead>
@@ -144,6 +153,8 @@ else
     private List<string> headers = ["ID", "ФИО", "Дата рождения", "Пол", "Паспорт", "Телефон", "Почта", "Адрес", "Действия"];
     [SupplyParameterFromForm(FormName = "PatientForm")]
     public Patient? ModelPatient { get; set; }
+    private bool sorted;
+    private string currentSortColumn;
 
     protected override async Task OnInitializedAsync()
     {
@@ -199,5 +210,30 @@ else
     {
         currentPage = newPage;
         UpdatePagedData();
+    }
+
+    private async Task SortByColumnHead(string column)
+    {
+        currentSortColumn = column;
+        if (!sorted)
+        {
+            var sortedList = await Service.SortByColumn(column, "ASC");
+            if (sortedList != null)
+            {
+                patients = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
+        else
+        {
+            var sortedList = await Service.SortByColumn(column, "DESC");
+            if (sortedList != null)
+            {
+                patients = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
     }
 }

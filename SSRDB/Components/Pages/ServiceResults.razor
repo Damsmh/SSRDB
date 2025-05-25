@@ -1,6 +1,7 @@
 ﻿@page "/appointmentServices"
 @inherits OwningComponentBase<IAppointmentServiceRepository>
 @rendermode InteractiveServer
+@attribute [StreamRendering]
 @inject IAppointmentRepository AppointmentService
 @inject IServiceRepository ServiceService
 
@@ -41,7 +42,7 @@
                             <tr>
                                 <td>Услуга</td>
                                 <td>
-                                    <input type="number" class="form-control" list="Services" @bind="SearchServiceName" @bind:event="oninput" @bind:after="SearchService" />
+                                    <input type="text" class="form-control" list="Services" @bind="SearchServiceName" @bind:event="oninput" @bind:after="SearchService" />
                                     <datalist class="col-4" id="Services">
                                         @if (services != null)
                                         {
@@ -55,7 +56,7 @@
                             </tr>
                             <tr>
                                 <td>Результат</td>
-                                <td><InputText @bind-Value="ModelAppointmentService!.Result" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelAppointmentService!.Result" /></td>
                             </tr>
                         </table>
                     </div>
@@ -81,7 +82,15 @@ else
             <tr>
                 @foreach (var head in headers)
                 {
-                    <th>@head</th>
+                    <th>
+                        <button class="btn" @onclick="@(async () => await SortByColumnHead(head))">
+                            @head
+                            @if (currentSortColumn == head)
+                            {
+                                <span>@(sorted ? "↑" : "↓")</span>
+                            }
+                        </button>
+                    </th>
                 }
             </tr>
         </thead>
@@ -142,6 +151,8 @@ else
     public Entities.AppointmentService? ModelAppointmentService { get; set; }
     private IEnumerable<Appointment>? appointments;
     private IEnumerable<Service>? services;
+    private bool sorted;
+    private string currentSortColumn;
 
     private int SearchAppointmentId = 0;
     private string SearchServiceName = "";
@@ -151,9 +162,10 @@ else
         ModelAppointmentService ??= new();
         ModelAppointmentService!.AppointmentServiceId = 0;
         appointmentServices = await Service.GetAllAsync();
+        UpdatePagedData();
         appointments = await AppointmentService.GetAllAsync();
         services = await ServiceService.GetAllAsync();
-        UpdatePagedData();
+        
     }
 
     private void Discard()
@@ -180,6 +192,8 @@ else
     private async Task DetailsObjAsync(int Id)
     {
         ModelAppointmentService = await Service.GetByIdAsync(Id);
+        SearchAppointmentId = ModelAppointmentService.AppointmentId;
+        SearchServiceName = ModelAppointmentService.Service.Name;
     }
 
     private async Task DeleteObjAsync(int Id)
@@ -217,5 +231,30 @@ else
     {
         currentPage = newPage;
         UpdatePagedData();
+    }
+
+    private async Task SortByColumnHead(string column)
+    {
+        currentSortColumn = column;
+        if (!sorted)
+        {
+            var sortedList = await Service.SortByColumn(column, "ASC");
+            if (sortedList != null)
+            {
+                appointmentServices = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
+        else
+        {
+            var sortedList = await Service.SortByColumn(column, "DESC");
+            if (sortedList != null)
+            {
+                appointmentServices = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
     }
 }

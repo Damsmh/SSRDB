@@ -10,6 +10,13 @@ namespace SSRDB.Repositories
 
     public class PatientRepository(ApplicationDbContext context) : IPatientRepository
     {
+        private readonly Dictionary<string, string> columnTranslate = new()
+        {
+            {"ID", "PatientId"},
+            {"ФИО", "FullNamme"},
+            {"Дата рождения", "BirthDate"},
+            {"Пол", "Gender"},
+        };
         public async Task<IEnumerable<Patient>> GetAllAsync()
         {
             return await context.Patients
@@ -56,6 +63,19 @@ namespace SSRDB.Repositories
                     WHERE "PatientId" = @PatientId
                     """, parameters);
             }
+        }
+
+        public async Task<IEnumerable<Patient>?> SortByColumn(string column, string method)
+        {
+            if (!columnTranslate.TryGetValue(column, out string? columnName))
+            {
+                return null;
+            }
+            var safeColumnName = $"\"{columnName}\"";
+
+            return await context.Patients
+                .FromSqlRaw($"""SELECT * FROM "Patients" ORDER BY {safeColumnName} {method}""")
+                .ToListAsync();
         }
 
         public async Task DeleteAsync(int id)

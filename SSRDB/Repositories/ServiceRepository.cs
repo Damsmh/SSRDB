@@ -10,6 +10,12 @@ namespace SSRDB.Repositories
 {
     public class ServiceRepository(ApplicationDbContext context) : IServiceRepository
     {
+        private readonly Dictionary<string, string> columnTranslate = new()
+        {
+            {"ID", "ServiceId"},
+            {"Название", "Name"},
+            {"Стоимость", "Price"},
+        };
         public async Task<IEnumerable<Service>> GetAllAsync()
         {
             return await context.Services
@@ -32,6 +38,19 @@ namespace SSRDB.Repositories
                 INSERT INTO "Services" ("Name", "Price", "DurationMinutes")
                 VALUES (@Name, @Price, @DurationMinutes)
                 """, parameters);
+        }
+
+        public async Task<IEnumerable<Service>?> SortByColumn(string column, string method)
+        {
+            if (!columnTranslate.TryGetValue(column, out string? columnName))
+            {
+                return null;
+            }
+            var safeColumnName = $"\"{columnName}\"";
+
+            return await context.Services
+                .FromSqlRaw($"""SELECT * FROM "Services" ORDER BY {safeColumnName} {method}""")
+                .ToListAsync();
         }
 
         public async Task UpdateAsync(Service service)

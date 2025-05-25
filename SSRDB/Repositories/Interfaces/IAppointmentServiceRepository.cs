@@ -8,6 +8,7 @@ namespace SSRDB.Repositories.Interfaces
         Task<IEnumerable<AppointmentService>> GetAllAsync();
         Task<IEnumerable<AppointmentService>> GetByAppointmentIdAsync(int appointmentId);
         Task<IEnumerable<AppointmentService>> GetByServiceIdAsync(int serviceId);
+        Task<IEnumerable<AppointmentService>?> SortByColumn(string column, string method);
         Task AddAsync(AppointmentService appointmentService);
         Task UpdateAsync(AppointmentService appointmentService);
         Task DeleteAsync(int id);

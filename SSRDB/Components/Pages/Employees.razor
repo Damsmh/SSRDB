@@ -1,5 +1,6 @@
 ﻿@page "/employees"
 @inherits OwningComponentBase<IEmployeeRepository>
+@attribute [StreamRendering]
 @rendermode InteractiveServer
 
 <PageTitle>Employees</PageTitle>
@@ -23,19 +24,19 @@
                         <table class="table">
                             <tr>
                                 <td>ФИО</td>
-                                <td><InputText @bind-Value="ModelEmployee!.FullName" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelEmployee!.FullName" /></td>
                             </tr>
                             <tr>
                                 <td>Специализация</td>
-                                <td><InputText @bind-Value="ModelEmployee!.Specialization" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelEmployee!.Specialization" /></td>
                             </tr>
                             <tr>
                                 <td>Номер лицензии</td>
-                                <td><InputText @bind-Value="ModelEmployee!.LicenseNumber" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelEmployee!.LicenseNumber" /></td>
                             </tr>
                             <tr>
                                 <td>Телефон</td>
-                                <td><InputText @bind-Value="ModelEmployee!.Phone" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelEmployee!.Phone" /></td>
                             </tr>
                         </table>
                     </div>
@@ -61,7 +62,15 @@ else
             <tr>
                 @foreach (var head in headers)
                 {
-                    <th>@head</th>
+                    <th>
+                        <button class="btn" @onclick="@(async () => await SortByColumnHead(head))">
+                            @head
+                            @if (currentSortColumn == head)
+                            {
+                                <span>@(sorted ? "↑" : "↓")</span>
+                            }
+                        </button>
+                    </th>
                 }
             </tr>
         </thead>
@@ -121,6 +130,8 @@ else
     private List<string> headers = ["ID", "ФИО", "Специализация", "Номер лицензии", "Телефон", "Действия"];
     [SupplyParameterFromForm(FormName = "EmployeeForm")]
     public Entities.Employee? ModelEmployee { get; set; }
+    private bool sorted;
+    private string currentSortColumn;
 
     protected override async Task OnInitializedAsync()
     {
@@ -174,5 +185,30 @@ else
     {
         currentPage = newPage;
         UpdatePagedData();
+    }
+
+    private async Task SortByColumnHead(string column)
+    {
+        currentSortColumn = column;
+        if (!sorted)
+        {
+            var sortedList = await Service.SortByColumn(column, "ASC");
+            if (sortedList != null)
+            {
+                employees = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
+        else
+        {
+            var sortedList = await Service.SortByColumn(column, "DESC");
+            if (sortedList != null)
+            {
+                employees = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
     }
 }

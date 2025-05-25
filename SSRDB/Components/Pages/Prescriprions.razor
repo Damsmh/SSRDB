@@ -2,6 +2,7 @@
 @inherits OwningComponentBase<IPrescriptionRepository>
 @inject IDiagnosisRepository DiagnosisService
 @inject IMedicationRepository MedicationService
+@attribute [StreamRendering]
 @rendermode InteractiveServer
 
 <PageTitle>Prescriptions</PageTitle>
@@ -55,11 +56,11 @@
                             </tr>
                             <tr>
                                 <td>Доза</td>
-                                <td><InputText @bind-Value="ModelPrescription!.Dosage" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelPrescription!.Dosage" /></td>
                             </tr>
                             <tr>
                                 <td>Период применения (Д)</td>
-                                <td><InputNumber @bind-Value="ModelPrescription!.DurationDays" /></td>
+                                <td><InputNumber class="form-control" @bind-Value="ModelPrescription!.DurationDays" /></td>
                             </tr>
                         </table>
                     </div>
@@ -85,7 +86,15 @@ else
             <tr>
                 @foreach (var head in headers)
                 {
-                    <th>@head</th>
+                    <th>
+                        <button class="btn" @onclick="@(async () => await SortByColumnHead(head))">
+                            @head
+                            @if (currentSortColumn == head)
+                            {
+                                <span>@(sorted ? "↑" : "↓")</span>
+                            }
+                        </button>
+                    </th>
                 }
             </tr>
         </thead>
@@ -149,6 +158,8 @@ else
     private IEnumerable<Diagnosis>? SearchDiagnoses;
     private IEnumerable<Medication>? medications;
     private IEnumerable<Medication>? SearchMedications;
+    private bool sorted;
+    private string currentSortColumn;
 
     private string DiagnosisName = "";
     private string MedicationName = "";
@@ -224,5 +235,30 @@ else
     {
         currentPage = newPage;
         UpdatePagedData();
+    }
+
+    private async Task SortByColumnHead(string column)
+    {
+        currentSortColumn = column;
+        if (!sorted)
+        {
+            var sortedList = await Service.SortByColumn(column, "ASC");
+            if (sortedList != null)
+            {
+                prescriptions = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
+        else
+        {
+            var sortedList = await Service.SortByColumn(column, "DESC");
+            if (sortedList != null)
+            {
+                prescriptions = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
     }
 }

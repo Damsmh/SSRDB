@@ -9,6 +9,13 @@ namespace SSRDB.Repositories
 {
     public class MedicationRepository(ApplicationDbContext context) : IMedicationRepository
     {
+        private readonly Dictionary<string, string> columnTranslate = new()
+        {
+            {"ID", "MMedicationid"},
+            {"Название", "Name"},
+            {"Производитель", "Manufacturer"},
+            {"Цена", "Price"},
+        };
         public async Task<IEnumerable<Medication>> GetAllAsync()
         {
             return await context.Medications
@@ -48,6 +55,19 @@ namespace SSRDB.Repositories
                     WHERE "MedicationId" = @MedicationId
                     """, parameters);
             }
+        }
+
+        public async Task<IEnumerable<Medication>?> SortByColumn(string column, string method)
+        {
+            if (!columnTranslate.TryGetValue(column, out string? columnName))
+            {
+                return null;
+            }
+            var safeColumnName = $"\"{columnName}\"";
+
+            return await context.Medications
+                .FromSqlRaw($"""SELECT * FROM "Medications" ORDER BY {safeColumnName} {method}""")
+                .ToListAsync();
         }
 
         public async Task DeleteAsync(int id)

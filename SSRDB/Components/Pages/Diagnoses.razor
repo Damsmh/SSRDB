@@ -1,5 +1,6 @@
 ﻿@page "/diagnoses"
 @inherits OwningComponentBase<IDiagnosisRepository>
+@attribute [StreamRendering]
 @rendermode InteractiveServer
 @inject IAppointmentRepository AppointmentService
 
@@ -39,15 +40,15 @@
                             </tr>
                             <tr>
                                 <td>Код(МКБ-10)</td>
-                                <td><InputText @bind-Value="ModelDiagnose!.DiagnosisCode" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelDiagnose!.DiagnosisCode" /></td>
                             </tr>
                             <tr>
                                 <td>Описание</td>
-                                <td><InputText @bind-Value="ModelDiagnose!.Description" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelDiagnose!.Description" /></td>
                             </tr>
                             <tr>
                                 <td>Рекомендации</td>
-                                <td><InputText @bind-Value="ModelDiagnose!.Recommendations" /></td>
+                                <td><InputText class="form-control" @bind-Value="ModelDiagnose!.Recommendations" /></td>
                             </tr>
                         </table>
                     </div>
@@ -73,7 +74,15 @@ else
             <tr>
                 @foreach (var head in headers)
                 {
-                    <th>@head</th>
+                    <th>
+                        <button class="btn" @onclick="@(async () => await SortByColumnHead(head))">
+                            @head
+                            @if (currentSortColumn == head)
+                            {
+                                <span>@(sorted ? "↑" : "↓")</span>
+                            }
+                        </button>
+                    </th>
                 }
             </tr>
         </thead>
@@ -134,6 +143,8 @@ else
     [SupplyParameterFromForm(FormName = "DiagnoseForm")]
     public Entities.Diagnosis? ModelDiagnose { get; set; }
     private IEnumerable<Appointment>? appointments;
+    private bool sorted;
+    private string currentSortColumn;
 
     private int SearchAppointmentId = 0;
 
@@ -199,5 +210,30 @@ else
     {
         currentPage = newPage;
         UpdatePagedData();
+    }
+
+    private async Task SortByColumnHead(string column)
+    {
+        currentSortColumn = column;
+        if (!sorted)
+        {
+            var sortedList = await Service.SortByColumn(column, "ASC");
+            if (sortedList != null)
+            {
+                diagnoses = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
+        else
+        {
+            var sortedList = await Service.SortByColumn(column, "DESC");
+            if (sortedList != null)
+            {
+                diagnoses = sortedList;
+                sorted = !sorted;
+                UpdatePagedData();
+            }
+        }
     }
 }

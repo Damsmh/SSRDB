@@ -9,6 +9,12 @@ namespace SSRDB.Repositories
 {
     public class EmployeeRepository(ApplicationDbContext context) : IEmployeeRepository
     {
+        private readonly Dictionary<string, string> columnTranslate = new()
+        {
+            {"ID", "EmployeeId"},
+            {"ФИО", "FullName"},
+            {"Специализация", "Specialization"},
+        };
         public async Task<IEnumerable<Employee>> GetAllAsync()
         {
             return await context.Employees
@@ -54,6 +60,19 @@ namespace SSRDB.Repositories
                     WHERE "EmployeeId" = @EmployeeId
                     """, parameters);
             }
+        }
+
+        public async Task<IEnumerable<Employee>?> SortByColumn(string column, string method)
+        {
+            if (!columnTranslate.TryGetValue(column, out string? columnName))
+            {
+                return null;
+            }
+            var safeColumnName = $"\"{columnName}\"";
+
+            return await context.Employees
+                .FromSqlRaw($"""SELECT * FROM "Employees" ORDER BY {safeColumnName} {method}""")
+                .ToListAsync();
         }
 
         public async Task DeleteAsync(int id)

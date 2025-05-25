@@ -9,6 +9,14 @@ namespace SSRDB.Repositories
 {
     public class AppointmentRepository(ApplicationDbContext context) : IAppointmentRepository
     {
+        private readonly Dictionary<string, string> columnTranslate = new()
+        {
+            {"ID", "AppointmentId"},
+            {"Пациент", "PatientId"},
+            {"Врач", "EmployeeId"},
+            {"Дата", "AppointmentDate"},
+            {"Статус", "Status"},
+        };
         public async Task<IEnumerable<Appointment>> GetAllAsync()
         {
             return await context.Appointments
@@ -40,6 +48,18 @@ namespace SSRDB.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Appointment>?> SortByColumn(string column, string method)
+        {
+            if (!columnTranslate.TryGetValue(column, out string? columnName))
+            {
+                return null;
+            }
+            var safeColumnName = $"\"{columnName}\"";
+
+            return await context.Appointments
+                .FromSqlRaw($"""SELECT * FROM "Appointments" ORDER BY {safeColumnName} {method}""")
+                .ToListAsync();
+        }
         public async Task AddAsync(Appointment appointment)
         {
             var parameters = RepositoryUtils.ParametersGenerator(appointment);

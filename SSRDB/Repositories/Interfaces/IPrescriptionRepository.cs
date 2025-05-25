@@ -8,6 +8,7 @@ namespace SSRDB.Repositories.Interfaces
         Task<Prescription> GetByIdAsync(int id);
         Task<IEnumerable<Prescription>> GetByDiagnosisIdAsync(int diagnosisId);
         Task<IEnumerable<Prescription>> GetByMedicationIdAsync(int miagnosisId);
+        Task<IEnumerable<Prescription>?> SortByColumn(string column, string method);
         Task AddAsync(Prescription Prescription);
         Task UpdateAsync(Prescription Prescription);
         Task DeleteAsync(int id);
