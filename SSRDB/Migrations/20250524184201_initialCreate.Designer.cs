@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SSRDB.Data;
@@ -11,9 +12,11 @@ using SSRDB.Data;
 namespace SSRDB.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250524184201_initialCreate")]
+    partial class initialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,6 +39,9 @@ namespace SSRDB.Migrations
                     b.Property<DateTime>("AppointmentDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DiagnosisId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("EmployeeId")
                         .HasColumnType("integer");
 
@@ -50,6 +56,8 @@ namespace SSRDB.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("AppointmentId");
+
+                    b.HasIndex("DiagnosisId");
 
                     b.HasIndex("EmployeeId");
 
@@ -92,9 +100,6 @@ namespace SSRDB.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DiagnosisId"));
 
-                    b.Property<int>("AppointmentId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
@@ -108,9 +113,6 @@ namespace SSRDB.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("DiagnosisId");
-
-                    b.HasIndex("AppointmentId")
-                        .IsUnique();
 
                     b.ToTable("Diagnoses");
                 });
@@ -261,6 +263,12 @@ namespace SSRDB.Migrations
 
             modelBuilder.Entity("SSRDB.Entities.Appointment", b =>
                 {
+                    b.HasOne("SSRDB.Entities.Diagnosis", "Diagnosis")
+                        .WithMany("Appointments")
+                        .HasForeignKey("DiagnosisId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("SSRDB.Entities.Employee", "Employee")
                         .WithMany("Appointments")
                         .HasForeignKey("EmployeeId")
@@ -272,6 +280,8 @@ namespace SSRDB.Migrations
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Diagnosis");
 
                     b.Navigation("Employee");
 
@@ -297,17 +307,6 @@ namespace SSRDB.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("SSRDB.Entities.Diagnosis", b =>
-                {
-                    b.HasOne("SSRDB.Entities.Appointment", "Appointment")
-                        .WithOne("Diagnosis")
-                        .HasForeignKey("SSRDB.Entities.Diagnosis", "AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Appointment");
-                });
-
             modelBuilder.Entity("SSRDB.Entities.Prescription", b =>
                 {
                     b.HasOne("SSRDB.Entities.Diagnosis", "Diagnosis")
@@ -330,13 +329,12 @@ namespace SSRDB.Migrations
             modelBuilder.Entity("SSRDB.Entities.Appointment", b =>
                 {
                     b.Navigation("AppointmentServices");
-
-                    b.Navigation("Diagnosis")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("SSRDB.Entities.Diagnosis", b =>
                 {
+                    b.Navigation("Appointments");
+
                     b.Navigation("Prescriptions");
                 });
 

@@ -9,6 +9,7 @@
     <button type="button" class="btn btn-dark"
     data-bs-toggle="modal"
     data-bs-target="#patientModal">
+        <i class="bi bi-plus-lg"></i>
         Добавить
     </button>
     <div class="modal fade" id="patientModal" tabindex="-1" aria-labelledby="patientModalLabel" aria-hidden="true">
@@ -17,7 +18,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="patientModalLabel">Сведения о пациенте</h5>
                 </div>
-                <EditForm Model="ModelPatient" OnSubmit="InsertObjAsync" FormName="PatientForm">
+                <EditForm Model="ModelPatient" OnValidSubmit="InsertObjAsync" FormName="PatientForm">
                     <div class="modal-body">
                         <table class="table">
                             <tr>
@@ -86,14 +87,14 @@ else
             @foreach (var patient in patients)
             {
                 <tr @key="patient.PatientId">
-                    <td>@patient.PatientId</td>
-                    <td>@patient.FullName</td>
-                    <td>@patient.BirthDate</td>
-                    <td>@patient.Gender</td>
-                    <td>@patient.PassportNumber</td>
-                    <td>@patient.Phone</td>
-                    <td>@patient.Email</td>
-                    <td>@patient.Address</td>
+                    <td class="align-middle">@patient.PatientId</td>
+                    <td class="align-middle">@patient.FullName</td>
+                    <td class="align-middle">@patient.BirthDate</td>
+                    <td class="align-middle">@patient.Gender</td>
+                    <td class ="align-middle">@patient.PassportNumber</td>
+                    <td class="align-middle">@patient.Phone</td>
+                    <td class="align-middle">@patient.Email</td>
+                    <td class="align-middle">@patient.Address</td>
                     <td>
                         <button
                         type="button"
@@ -106,7 +107,7 @@ else
                         <button
                         type="button"
                         @onclick="@(async () => await DeleteObjAsync(patient.PatientId))"
-                        class="btn">
+                        class="btn trash">
                             <i class="bi bi-trash text-danger"></i>
                         </button>
                     </td>

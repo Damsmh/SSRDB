@@ -1,0 +1,129 @@
+﻿@page "/medications"
+@inherits OwningComponentBase<IMedicationRepository>
+@rendermode InteractiveServer
+
+<PageTitle>Medications</PageTitle>
+
+<div class="d-flex justify-content-between pb-5">
+    <h1>Медикаменты</h1>
+    <button type="button" class="btn btn-dark"
+    data-bs-toggle="modal"
+    data-bs-target="#medicationModal">
+        <i class="bi bi-plus-lg"></i>
+        Добавить
+    </button>
+    <div class="modal fade" id="medicationModal" tabindex="-1" aria-labelledby="medicationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="medicationModalLabel">Сведения о медикаменте</h5>
+                </div>
+                <EditForm Model="ModelMedication" OnValidSubmit="InsertObjAsync" FormName="MedicationForm">
+                    <div class="modal-body">
+                        <table class="table">
+                            <tr>
+                                <td>Название</td>
+                                <td><InputText @bind-Value="ModelMedication!.Name" /></td>
+                            </tr>
+                            <tr>
+                                <td>Производитель</td>
+                                <td><InputText @bind-Value="ModelMedication!.Manufacturer" /></td>
+                            </tr>
+                            <tr>
+                                <td>Цена</td>
+                                <td><InputNumber @bind-Value="ModelMedication!.Price" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn border-black" data-bs-dismiss="modal" @onclick="Discard">Закрыть</button>
+                        <button type="submit" class="btn btn-dark" data-bs-dismiss="modal">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (medications == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table border">
+        <thead>
+            <tr>
+                @foreach (var head in headers)
+                {
+                    <th>@head</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var medication in medications)
+            {
+                <tr @key="medication.MedicationId">
+                    <td class="align-middle">@medication.MedicationId</td>
+                    <td class="align-middle">@medication.Name</td>
+                    <td class="align-middle">@medication.Manufacturer</td>
+                    <td class="align-middle">@medication.Price<span> ₽</span></td>
+                    <td>
+                        <button
+                        type="button"
+                        @onclick="@(async () => await DetailsObjAsync(medication.MedicationId))"
+                        class="btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#medicationModal">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button
+                        type="button"
+                        @onclick="@(async () => await DeleteObjAsync(medication.MedicationId))"
+                        class="btn trash">
+                            <i class="bi bi-trash text-danger"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Entities.Medication>? medications;
+    private List<string> headers = ["ID", "Название", "Производитель", "Цена", "Действия"];
+    [SupplyParameterFromForm(FormName = "MedicationForm")]
+    public Entities.Medication? ModelMedication { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ModelMedication ??= new();
+        ModelMedication!.MedicationId = 0;
+        medications = await Service.GetAllAsync();
+    }
+
+    private void Discard()
+    {
+        ModelMedication = new();
+    }
+    private async Task InsertObjAsync()
+    {
+        if (ModelMedication!.MedicationId == 0) { await Service.AddAsync(ModelMedication); }
+        else { await Service.UpdateAsync(ModelMedication); }
+        medications = await Service.GetAllAsync();
+        Discard();
+    }
+
+    private async Task DetailsObjAsync(int Id)
+    {
+        ModelMedication = await Service.GetByIdAsync(Id);
+    }
+
+    private async Task DeleteObjAsync(int Id)
+    {
+        await Service.DeleteAsync(Id);
+        medications = await Service.GetAllAsync();
+    }
+}

@@ -41,9 +41,9 @@ namespace SSRDB.Data
                 .HasForeignKey(a => a.EmployeeId);
 
             modelBuilder.Entity<Diagnosis>()
-                .HasOne(d => d.Appointment)
-                .WithOne(a => a.Diagnosis)
-                .HasForeignKey<Diagnosis>(d => d.AppointmentId);
+                .HasOne(a => a.Appointment)
+                .WithMany(d => d.Diagnoses)
+                .HasForeignKey(a => a.AppointmentId);
 
             modelBuilder.Entity<Prescription>()
                 .HasOne(p => p.Diagnosis)

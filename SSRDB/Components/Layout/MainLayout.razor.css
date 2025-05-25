@@ -106,14 +106,12 @@ main {
 }
 
 .btn:hover {
+    color: black !important;
     background-color: gray !important;
 }
 
 
-.bi-trash:hover {
-    color: black;
-    background-color: lightgray !important;
-}
-.bi-pencil-square:hover {
-    background-color: lightgray !important;
+.trash:hover {
+    color: black !important;
+    background-color: darkgray !important;
 }

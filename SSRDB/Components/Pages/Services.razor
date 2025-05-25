@@ -9,6 +9,7 @@
     <button type="button" class="btn btn-dark"
     data-bs-toggle="modal"
     data-bs-target="#serviceModal">
+        <i class="bi bi-plus-lg"></i>
         Добавить
     </button>
     <div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
@@ -17,7 +18,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="serviceModalLabel">Сведения об Услуге</h5>
                 </div>
-                <EditForm Model="ModelService" OnSubmit="InsertObjAsync" FormName="ServiceForm">
+                <EditForm Model="ModelService" OnValidSubmit="InsertObjAsync" FormName="ServiceForm">
                     <div class="modal-body">
                         <table class="table">
                             <tr>
@@ -64,10 +65,10 @@ else
             @foreach (var service in services)
             {
                 <tr @key="service.ServiceId">
-                    <td>@service.ServiceId</td>
-                    <td>@service.Name</td>
-                    <td>@service.Price<span> ₽</span></td>
-                    <td>@service.DurationMinutes<span> мин</span></td>
+                    <td class="align-middle">@service.ServiceId</td>
+                    <td class="align-middle">@service.Name</td>
+                    <td class="align-middle">@service.Price<span> ₽</span></td>
+                    <td class="align-middle">@service.DurationMinutes<span> мин</span></td>
                     <td>
                         <button type="button"
                         @onclick="@(async () => await DetailsObjAsync(service.ServiceId))"
@@ -78,7 +79,7 @@ else
                         </button>
                         <button type="button"
                         @onclick="@(async () => await DeleteObjAsync(service.ServiceId))"
-                        class="btn">
+                                class="btn trash">
                             <i class="bi bi-trash text-danger"></i>
                         </button>
                     </td>
@@ -92,11 +93,11 @@ else
     private IEnumerable<Entities.Service>? services;
     private List<string> headers = ["ID", "Название", "Стоимость", "Длительность", "Действия"];
     [SupplyParameterFromForm(FormName = "ServiceForm")]
-    public Entities.Service ModelService { get; set; } = new();
+    public Entities.Service? ModelService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        ModelService = new();
+        ModelService ??= new();
         ModelService!.ServiceId = 0;
         services = await Service.GetAllAsync();
     }

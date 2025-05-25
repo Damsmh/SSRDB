@@ -1,0 +1,178 @@
+﻿@page "/appointmentServices"
+@inherits OwningComponentBase<IAppointmentServiceRepository>
+@rendermode InteractiveServer
+@inject IAppointmentRepository AppointmentService
+@inject IServiceRepository ServiceService
+
+<PageTitle>AppointmentServices</PageTitle>
+
+<div class="d-flex justify-content-between pb-5">
+    <h1>Диагнозы</h1>
+    <button type="button" class="btn btn-dark"
+    data-bs-toggle="modal"
+    data-bs-target="#appointmentServiceModal">
+        <i class="bi bi-plus-lg"></i>
+        Добавить
+    </button>
+    <div class="modal fade" id="appointmentServiceModal" tabindex="-1" aria-labelledby="appointmentServiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="appointmentServiceModalLabel">Сведения о Диагнозе</h5>
+                </div>
+                <EditForm Model="ModelAppointmentService" OnValidSubmit="InsertObjAsync" FormName="AppointmentServiceForm">
+                    <div class="modal-body">
+                        <table class="table">
+                            <tr>
+                                <td>Номер приёма</td>
+                                <td>
+                                    <input type="number" class="form-control" list="Appointments" @bind="SearchAppointmentId" @bind:event="oninput" @bind:after="SearchAppointment" />
+                                    <datalist class="col-4" id="Appointments">
+                                        @if (appointments != null)
+                                        {
+                                            @foreach (var appointment in appointments)
+                                            {
+                                                <option value="@appointment.AppointmentId"></option>
+                                            }
+                                        }
+                                    </datalist>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Услуга</td>
+                                <td>
+                                    <input type="number" class="form-control" list="Services" @bind="SearchServiceName" @bind:event="oninput" @bind:after="SearchService" />
+                                    <datalist class="col-4" id="Services">
+                                        @if (services != null)
+                                        {
+                                            @foreach (var service in services)
+                                            {
+                                                <option value="@service.Name"></option>
+                                            }
+                                        }
+                                    </datalist>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Результат</td>
+                                <td><InputText @bind-Value="ModelAppointmentService!.Result" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn border-black" data-bs-dismiss="modal" @onclick="Discard">Закрыть</button>
+                        <button type="submit" class="btn btn-dark" data-bs-dismiss="modal">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (appointmentServices == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table border">
+        <thead>
+            <tr>
+                @foreach (var head in headers)
+                {
+                    <th>@head</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var appointmentService in appointmentServices)
+            {
+                <tr @key="appointmentService.AppointmentServiceId">
+                    <td class="align-middle">@appointmentService.AppointmentServiceId</td>
+                    <td class="align-middle">@appointmentService.AppointmentId</td>
+                    <td class="align-middle">@appointmentService.Service.Name</td>
+                    <td class="align-middle">@appointmentService.Result</td>
+                    <td>
+                        <button type="button"
+                        @onclick="@(async () => await DetailsObjAsync(appointmentService.AppointmentServiceId))"
+                        class="btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#appointmentServiceModal">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button type="button"
+                        @onclick="@(async () => await DeleteObjAsync(appointmentService.AppointmentServiceId))"
+                        class="btn trash">
+                            <i class="bi bi-trash text-danger"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Entities.AppointmentService>? appointmentServices;
+    private List<string> headers = ["ID", "Номер приёма", "Услуга", "Результат", "Действия"];
+    [SupplyParameterFromForm(FormName = "AppointmentServiceForm")]
+    public Entities.AppointmentService? ModelAppointmentService { get; set; }
+    private IEnumerable<Appointment>? appointments;
+    private IEnumerable<Service>? services;
+
+    private int? SearchAppointmentId;
+    private string? SearchServiceName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ModelAppointmentService ??= new();
+        ModelAppointmentService!.AppointmentServiceId = 0;
+        appointmentServices = await Service.GetAllAsync();
+        appointments = await AppointmentService.GetAllAsync();
+        services = await ServiceService.GetAllAsync();
+    }
+
+    private void Discard()
+    {
+        ModelAppointmentService = new();
+    }
+    private async Task InsertObjAsync()
+    {
+
+        if (ModelAppointmentService!.AppointmentServiceId == 0) { 
+            if (!IsAnyNullOrEmpty(ModelAppointmentService))
+            {
+                await Service.AddAsync(ModelAppointmentService);
+            }
+        }
+        else { await Service.UpdateAsync(ModelAppointmentService); }
+        appointmentServices = await Service.GetAllAsync();
+        Discard();
+    }
+
+    private async Task DetailsObjAsync(int Id)
+    {
+        ModelAppointmentService = await Service.GetByIdAsync(Id);
+    }
+
+    private async Task DeleteObjAsync(int Id)
+    {
+        await Service.DeleteAsync(Id);
+        appointmentServices = await Service.GetAllAsync();
+    }
+
+    private async Task SearchAppointment()
+    {
+        var appointment = appointments.Where(e => e.AppointmentId == SearchAppointmentId).FirstOrDefault();
+        if (appointment != null) { ModelAppointmentService.AppointmentId = appointment.AppointmentId; }
+
+    }
+
+    private async Task SearchService()
+    {
+        var service = services.Where(e => e.Name == SearchServiceName).FirstOrDefault();
+        if (service != null) { ModelAppointmentService.ServiceId = service.ServiceId; }
+
+    }
+}

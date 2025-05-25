@@ -1,0 +1,161 @@
+﻿@page "/diagnoses"
+@inherits OwningComponentBase<IDiagnosisRepository>
+@rendermode InteractiveServer
+@inject IAppointmentRepository AppointmentService
+
+<PageTitle>Diagnoses</PageTitle>
+
+<div class="d-flex justify-content-between pb-5">
+    <h1>Диагнозы</h1>
+    <button type="button" class="btn btn-dark"
+    data-bs-toggle="modal"
+    data-bs-target="#diagnoseModal">
+        <i class="bi bi-plus-lg"></i>
+        Добавить
+    </button>
+    <div class="modal fade" id="diagnoseModal" tabindex="-1" aria-labelledby="diagnoseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="diagnoseModalLabel">Сведения о Диагнозе</h5>
+                </div>
+                <EditForm Model="ModelDiagnose" OnValidSubmit="InsertObjAsync" FormName="DiagnoseForm">
+                    <div class="modal-body">
+                        <table class="table">
+                            <tr>
+                                <td>Номер приёма</td>
+                                <td>
+                                    <input type="number" class="form-control" list="Appointments" @bind="SearchAppointmentId" @bind:event="oninput" @bind:after="SearchAppointment" />
+                                    <datalist class="col-4" id="Appointments">
+                                        @if (appointments != null)
+                                        {
+                                            @foreach (var appointment in appointments)
+                                            {
+                                                <option value="@appointment.AppointmentId"></option>
+                                            }
+                                        }
+                                    </datalist>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Код(МКБ-10)</td>
+                                <td><InputText @bind-Value="ModelDiagnose!.DiagnosisCode" /></td>
+                            </tr>
+                            <tr>
+                                <td>Описание</td>
+                                <td><InputText @bind-Value="ModelDiagnose!.Description" /></td>
+                            </tr>
+                            <tr>
+                                <td>Рекомендации</td>
+                                <td><InputText @bind-Value="ModelDiagnose!.Recommendations" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn border-black" data-bs-dismiss="modal" @onclick="Discard">Закрыть</button>
+                        <button type="submit" class="btn btn-dark" data-bs-dismiss="modal">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (diagnoses == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table border">
+        <thead>
+            <tr>
+                @foreach (var head in headers)
+                {
+                    <th>@head</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var diagnose in diagnoses)
+            {
+                <tr @key="diagnose.DiagnosisId">
+                    <td class="align-middle">@diagnose.DiagnosisId</td>
+                    <td class="align-middle">@diagnose.AppointmentId</td>
+                    <td class="align-middle">@diagnose.DiagnosisCode</td>
+                    <td class="align-middle">@diagnose.Description</td>
+                    <td class="align-middle">@diagnose.Recommendations</td>
+                    <td>
+                        <button type="button"
+                        @onclick="@(async () => await DetailsObjAsync(diagnose.DiagnosisId))"
+                        class="btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#diagnoseModal">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button type="button"
+                        @onclick="@(async () => await DeleteObjAsync(diagnose.DiagnosisId))"
+                        class="btn trash">
+                            <i class="bi bi-trash text-danger"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Entities.Diagnosis>? diagnoses;
+    private List<string> headers = ["ID", "Номер приёма", "Код(МКБ-10)", "Описание", "Рекомендации", "Действия"];
+    [SupplyParameterFromForm(FormName = "DiagnoseForm")]
+    public Entities.Diagnosis? ModelDiagnose { get; set; }
+    private IEnumerable<Appointment>? appointments;
+
+    private int SearchAppointmentId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ModelDiagnose ??= new();
+        ModelDiagnose!.DiagnosisId = 0;
+        diagnoses = await Service.GetAllAsync();
+        appointments = await AppointmentService.GetAllAsync();
+    }
+
+    private void Discard()
+    {
+        ModelDiagnose = new();
+    }
+    private async Task InsertObjAsync()
+    {
+
+        if (ModelDiagnose!.DiagnosisId == 0) { 
+            if (!IsAnyNullOrEmpty(ModelDiagnose))
+            {
+                await Service.AddAsync(ModelDiagnose);
+            }
+        }
+        else { await Service.UpdateAsync(ModelDiagnose); }
+        diagnoses = await Service.GetAllAsync();
+        Discard();
+    }
+
+    private async Task DetailsObjAsync(int Id)
+    {
+        ModelDiagnose = await Service.GetByIdAsync(Id);
+    }
+
+    private async Task DeleteObjAsync(int Id)
+    {
+        await Service.DeleteAsync(Id);
+        diagnoses = await Service.GetAllAsync();
+    }
+
+    private async Task SearchAppointment()
+    {
+        var appointment = appointments.Where(e => e.AppointmentId == SearchAppointmentId).FirstOrDefault();
+        if (appointment != null) { ModelDiagnose.AppointmentId = appointment.AppointmentId; }
+
+    }
+}

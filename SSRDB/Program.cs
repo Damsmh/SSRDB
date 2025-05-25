@@ -24,6 +24,10 @@ namespace SSRDB
             builder.Services.AddScoped<IPatientRepository, PatientRepository>();
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+            builder.Services.AddScoped<IDiagnosisRepository, DiagnosisRepository>();
+            builder.Services.AddScoped<IMedicationRepository, MedicationRepository>();
+            builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+            builder.Services.AddScoped<IAppointmentServiceRepository, AppointmentServiceRepository>();
 
             var app = builder.Build();
 

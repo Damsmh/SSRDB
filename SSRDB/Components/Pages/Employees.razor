@@ -9,6 +9,7 @@
     <button type="button" class="btn btn-dark"
     data-bs-toggle="modal"
     data-bs-target="#employeeModal">
+        <i class="bi bi-plus-lg"></i>
         Добавить
     </button>
     <div class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="employeeModalLabel" aria-hidden="true">
@@ -17,7 +18,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="employeeModalLabel">Сведения о Приёме</h5>
                 </div>
-                <EditForm Model="ModelEmployee" OnSubmit="InsertObjAsync" FormName="EmployeeForm">
+                <EditForm Model="ModelEmployee" OnValidSubmit="InsertObjAsync" FormName="EmployeeForm">
                     <div class="modal-body">
                         <table class="table">
                             <tr>
@@ -68,11 +69,11 @@ else
             @foreach (var employee in employees)
             {
                 <tr @key="employee.EmployeeId">
-                    <td>@employee.EmployeeId</td>
-                    <td>@employee.FullName</td>
-                    <td>@employee.Specialization</td>
-                    <td>@employee.LicenseNumber</td>
-                    <td>@employee.Phone</td>
+                    <td class="align-middle">@employee.EmployeeId</td>
+                    <td class="align-middle">@employee.FullName</td>
+                    <td class="align-middle">@employee.Specialization</td>
+                    <td class="align-middle">@employee.LicenseNumber</td>
+                    <td class="align-middle">@employee.Phone</td>
                     <td>
                         <button type="button"
                         @onclick="@(async () => await DetailsObjAsync(employee.EmployeeId))"
@@ -83,7 +84,7 @@ else
                         </button>
                         <button type="button"
                         @onclick="@(async () => await DeleteObjAsync(employee.EmployeeId))"
-                        class="btn">
+                                class="btn trash">
                             <i class="bi bi-trash text-danger"></i>
                         </button>
                     </td>
@@ -97,11 +98,11 @@ else
     private IEnumerable<Entities.Employee>? employees;
     private List<string> headers = ["ID", "ФИО", "Специализация", "Номер лицензии", "Телефон", "Действия"];
     [SupplyParameterFromForm(FormName = "EmployeeForm")]
-    public Entities.Employee ModelEmployee { get; set; } = new();
+    public Entities.Employee? ModelEmployee { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        ModelEmployee = new();
+        ModelEmployee ??= new();
         ModelEmployee!.EmployeeId = 0;
         employees = await Service.GetAllAsync();
     }

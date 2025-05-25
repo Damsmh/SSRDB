@@ -11,13 +11,14 @@ namespace SSRDB.Entities
         public DateTime AppointmentDate { get; set; } = DateTime.Now;
         public string Status { get; set; } = "Запланирован";
         public string? Notes { get; set; }
-
+        [Required]
         public int PatientId { get; set; }
+        [Required]
         public int EmployeeId { get; set; }
 
         virtual public Patient Patient { get; set; }
         virtual public Employee Employee { get; set; }
-        virtual public Diagnosis Diagnosis { get; set; }
+        virtual public ICollection<Diagnosis> Diagnoses { get; set; }
         virtual public ICollection<AppointmentService> AppointmentServices { get; set; }
     }
 }

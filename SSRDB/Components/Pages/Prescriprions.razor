@@ -1,0 +1,188 @@
+﻿@page "/prescriptions"
+@inherits OwningComponentBase<IPrescriptionRepository>
+@inject IDiagnosisRepository DiagnosisService
+@inject IMedicationRepository MedicationService
+@rendermode InteractiveServer
+
+<PageTitle>Prescriptions</PageTitle>
+
+<div class="d-flex justify-content-between pb-5">
+    <h1>Рецепты</h1>
+    <button type="button" class="btn btn-dark"
+    data-bs-toggle="modal"
+    data-bs-target="#prescriptionModal">
+        <i class="bi bi-plus-lg"></i>
+        Добавить
+    </button>
+    <div class="modal fade" id="prescriptionModal" tabindex="-1" aria-labelledby="prescriptionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="prescriptionModalLabel">Сведения о Рецепте</h5>
+                </div>
+                <EditForm Model="ModelPrescription" OnValidSubmit="InsertObjAsync" FormName="PrescriptionForm">
+                    <div class="modal-body">
+                        <table class="table">
+                            <tr>
+                                <td>Код диагноза(МКБ-10)</td>
+                                <td>
+                                    <input type="text" class="form-control" list="Diagnoses" @bind="DiagnosisName" @bind:event="oninput" @bind:after="SearchDiagnosis" />
+                                    <datalist class="col-4" id="Diagnoses">
+                                        @if (diagnoses != null)
+                                        {
+                                            @foreach (var diagnosis in diagnoses)
+                                            {
+                                                <option value="@diagnosis.DiagnosisCode"></option>
+                                            }
+                                        }
+                                    </datalist>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Медикамент</td>
+                                <td>
+                                    <input type="text" class="form-control" list="Medications" @bind="MedicationName" @bind:event="oninput" @bind:after="SearchMedication"/>
+                                    <datalist class="col-4" id="Medications">
+                                        @if (medications != null)
+                                        {
+                                            @foreach (var medication in medications)
+                                            {
+                                                <option value="@medication.Name"></option>
+                                            }
+                                        }
+                                    </datalist>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Доза</td>
+                                <td><InputText @bind-Value="ModelPrescription!.Dosage" /></td>
+                            </tr>
+                            <tr>
+                                <td>Период применения (Д)</td>
+                                <td><InputNumber @bind-Value="ModelPrescription!.DurationDays" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn border-black" data-bs-dismiss="modal" @onclick="Discard">Закрыть</button>
+                        <button type="submit" class="btn btn-dark" data-bs-dismiss="modal">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (prescriptions == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table border">
+        <thead>
+            <tr>
+                @foreach (var head in headers)
+                {
+                    <th>@head</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var prescription in prescriptions)
+            {
+                <tr @key="prescription.PrescriptionId">
+                    <td class="align-middle">@prescription.PrescriptionId</td>
+                    <td class="align-middle">@prescription.Diagnosis.DiagnosisCode</td>
+                    <td class="align-middle">@prescription.Medication.Name</td>
+                    <td class="align-middle">@prescription.Dosage</td>
+                    <td class="align-middle">@prescription.DurationDays<span> Д</span></td>
+                    <td>
+                        <button type="button"
+                        @onclick="@(async () => await DetailsObjAsync(prescription.PrescriptionId))"
+                        class="btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#prescriptionModal">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button type="button"
+                        @onclick="@(async () => await DeleteObjAsync(prescription.PrescriptionId))"
+                        class="btn trash">
+                            <i class="bi bi-trash text-danger"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Entities.Prescription>? prescriptions;
+    private List<string> headers = ["ID", "Код диагноза(МКБ-10)", "Медикамент", "Доза", "Период применения", "Действия"];
+    [SupplyParameterFromForm(FormName = "PrescriptionForm")]
+    public Entities.Prescription? ModelPrescription { get; set; }
+    private IEnumerable<Diagnosis>? diagnoses;
+    private IEnumerable<Diagnosis>? SearchDiagnoses;
+    private IEnumerable<Medication>? medications;
+    private IEnumerable<Medication>? SearchMedications;
+
+    private string DiagnosisName = "";
+    private string MedicationName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ModelPrescription ??= new();
+        ModelPrescription!.PrescriptionId = 0;
+        diagnoses = await DiagnosisService.GetAllAsync();
+        medications = await MedicationService.GetAllAsync();
+        prescriptions = await Service.GetAllAsync();
+    }
+
+    private void Discard()
+    {
+        ModelPrescription = new();
+        DiagnosisName = "";
+        MedicationName = "";
+    }
+    private async Task InsertObjAsync()
+    {
+
+        if (ModelPrescription!.PrescriptionId == 0) { 
+            if (!IsAnyNullOrEmpty(ModelPrescription))
+            {
+                await Service.AddAsync(ModelPrescription);
+            }
+        }
+        else { await Service.UpdateAsync(ModelPrescription); }
+        prescriptions = await Service.GetAllAsync();
+        Discard();
+    }
+
+    private async Task DetailsObjAsync(int Id)
+    {
+        ModelPrescription = await Service.GetByIdAsync(Id);
+        MedicationName = ModelPrescription.Medication.Name;
+        DiagnosisName = ModelPrescription.Diagnosis.DiagnosisCode;
+    }
+
+    private async Task DeleteObjAsync(int Id)
+    {
+        await Service.DeleteAsync(Id);
+        prescriptions = await Service.GetAllAsync();
+    }
+
+    private async Task SearchDiagnosis()
+    {
+        var diagnosis = diagnoses.Where(e => e.DiagnosisCode == DiagnosisName).FirstOrDefault();
+        if (diagnosis != null) { ModelPrescription.DiagnosisId = diagnosis.DiagnosisId; }
+
+    }
+
+    private async Task SearchMedication()
+    {
+        var medication = medications.Where(e => e.Name == MedicationName).FirstOrDefault();
+        if (medication != null) { ModelPrescription.MedicationId = medication.MedicationId; }
+    }
+}

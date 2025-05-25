@@ -11,6 +11,7 @@
     <button type="button" class="btn btn-dark"
     data-bs-toggle="modal"
     data-bs-target="#appointmentModal">
+        <i class="bi bi-plus-lg"></i>
         Добавить
     </button>
     <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
@@ -19,7 +20,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="appointmentModalLabel">Сведения о Приёме</h5>
                 </div>
-                <EditForm Model="ModelAppointment" OnSubmit="InsertObjAsync" FormName="AppointmentForm">
+                <EditForm Model="ModelAppointment" OnValidSubmit="InsertObjAsync" FormName="AppointmentForm">
                     <div class="modal-body">
                         <table class="table">
                             <tr>
@@ -55,7 +56,7 @@
                             <tr>
                                 <td>Дата</td>
                                 <td>
-                                    <InputDate @bind-Value="ModelAppointment!.AppointmentDate"></InputDate>
+                                    <input type="datetime-local" @bind="ModelAppointment!.AppointmentDate"></input>
                                 </td>
                             </tr>
                             <tr>
@@ -106,12 +107,12 @@ else
             @foreach (var appointment in appointments)
             {
                 <tr @key="appointment.AppointmentId">
-                    <td>@appointment.AppointmentId</td>
-                    <td>@appointment.Patient.FullName</td>
-                    <td>@appointment.Employee.FullName</td>
-                    <td>@appointment.AppointmentDate</td>
-                    <td>@appointment.Status</td>
-                    <td>@appointment.Notes</td>
+                    <td class="align-middle">@appointment.AppointmentId</td>
+                    <td class="align-middle">@appointment.Patient.FullName</td>
+                    <td class="align-middle">@appointment.Employee.FullName</td>
+                    <td class="align-middle">@appointment.AppointmentDate</td>
+                    <td class="align-middle">@appointment.Status</td>
+                    <td class="align-middle">@appointment.Notes</td>
                     <td>
                         <button type="button"
                         @onclick="@(async () => await DetailsObjAsync(appointment.AppointmentId))"
@@ -122,7 +123,7 @@ else
                         </button>
                         <button type="button"
                         @onclick="@(async () => await DeleteObjAsync(appointment.AppointmentId))"
-                        class="btn">
+                        class="btn trash">
                             <i class="bi bi-trash text-danger"></i>
                         </button>
                     </td>
@@ -136,7 +137,7 @@ else
     private IEnumerable<Entities.Appointment>? appointments;
     private List<string> headers = ["ID", "Пациент", "Врач", "Дата", "Статус", "Информация", "Действия"];
     [SupplyParameterFromForm(FormName = "AppointmentForm")]
-    public Entities.Appointment ModelAppointment { get; set; } = new();
+    public Entities.Appointment? ModelAppointment { get; set; }
     private IEnumerable<Patient>? patients;
     private IEnumerable<Patient>? Searchpatients;
     private IEnumerable<Employee>? doctors;
@@ -147,7 +148,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        ModelAppointment = new();
+        ModelAppointment ??= new();
         ModelAppointment!.AppointmentId = 0;
         patients = await PatientService.GetAllAsync();
         doctors = await EmployeeService.GetAllAsync();
