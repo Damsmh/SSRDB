@@ -95,20 +95,28 @@
 }
 else
 {
+    <div class="d-flex p-2">
+        <label for="Patients" class="form-label">Поиск по пациентам</label>
+        <input class="form-control" id="Patients" placeholder="Введите имя пациента..." @bind="PatientName" @bind:event="oninput" @bind:after="SearchByPatientName">
+        <label for="Employees" class="form-label">Поиск по пациентам</label>
+        <input class="form-control" id="Employees" placeholder="Введите имя врача..." @bind="EmployeeName" @bind:event="oninput" @bind:after="SearchByEmployeeName">
+    </div>
+    
+
     <table class="table border">
         <thead>
             <tr>
                 @foreach (var head in headers)
                 {
-                <th>
-                    <button class="btn" @onclick="@(async () => await SortByColumnHead(head))">
-                    @head
-                    @if (currentSortColumn == head)
-                    {
-                        <span>@(sorted ? "↑" : "↓")</span>
-                    }
-                    </button>
-                </th>
+                    <th>
+                        <button class="btn" @onclick="@(async () => await SortByColumnHead(head))">
+                            @head
+                            @if (currentSortColumn == head)
+                            {
+                                <span>@(sorted ? "↑" : "↓")</span>
+                            }
+                        </button>
+                    </th>
                 }
             </tr>
         </thead>
@@ -232,10 +240,24 @@ else
 
     }
 
+    private async Task SearchByPatientName()
+    {
+        appointments = appointments
+            .Where(p => p.Patient.FullName.Contains(PatientName));
+        UpdatePagedData();
+    }
+
     private async Task SearchEmployee()
     {
         var employee = doctors.Where(e => e.FullName == EmployeeName).FirstOrDefault();
         if (employee != null) { ModelAppointment.EmployeeId = employee.EmployeeId; }
+    }
+
+    private async Task SearchByEmployeeName()
+    {
+        appointments = appointments
+            .Where(p => p.Employee.FullName.Contains(EmployeeName));
+        UpdatePagedData();
     }
 
     private void UpdatePagedData()

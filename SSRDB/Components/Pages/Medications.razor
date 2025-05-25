@@ -53,6 +53,12 @@
 }
 else
 {
+    <div class="d-flex p-2">
+        <label for="Name" class="form-label">Поиск по названию</label>
+        <input class="form-control" id="Name" placeholder="Введите название..." @bind="Name" @bind:event="oninput" @bind:after="SearchByName">
+        <label for="Manufacturer" class="form-label">Поиск по производителям</label>
+        <input class="form-control" id="Manufacturer" placeholder="Введите производителя..." @bind="Manufacturer" @bind:event="oninput" @bind:after="SearchByManufacturer">
+    </div>
     <table class="table border">
         <thead>
             <tr>
@@ -130,6 +136,9 @@ else
     private bool sorted;
     private string currentSortColumn;
 
+    private string Name = "";
+    private string Manufacturer = "";
+
     protected override async Task OnInitializedAsync()
     {
         ModelMedication ??= new();
@@ -206,5 +215,19 @@ else
                 UpdatePagedData();
             }
         }
+    }
+
+    private async Task SearchByName()
+    {
+        medications = medications
+            .Where(p => p.Name.Contains(Name));
+        UpdatePagedData();
+    }
+
+    private async Task SearchByManufacturer()
+    {
+        medications = medications
+            .Where(p => p.Manufacturer.Contains(Manufacturer));
+        UpdatePagedData();
     }
 }

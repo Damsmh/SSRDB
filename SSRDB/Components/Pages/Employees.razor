@@ -57,6 +57,15 @@
 }
 else
 {
+    <div class="d-flex p-2">
+        <label for="Names" class="form-label">Поиск по ФИО</label>
+        <input class="form-control" id="Names" placeholder="Введите имя..." @bind="EmployeeName" @bind:event="oninput" @bind:after="SearchByEmployeeName">
+        <label for="Specialization" class="form-label">Поиск по Паспорту</label>
+        <input class="form-control" id="Specialization" placeholder="Введите специальность..." @bind="Specialization" @bind:event="oninput" @bind:after="SearchBySpecialization">
+        <label for="License" class="form-label">Поиск по Паспорту</label>
+        <input class="form-control" id="License" placeholder="Введите номер лицензии..." @bind="License" @bind:event="oninput" @bind:after="SearchByLicense">
+    </div>
+
     <table class="table border">
         <thead>
             <tr>
@@ -132,6 +141,10 @@ else
     public Entities.Employee? ModelEmployee { get; set; }
     private bool sorted;
     private string currentSortColumn;
+
+    private string EmployeeName = "";
+    private string License = "";
+    private string Specialization = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -210,5 +223,26 @@ else
                 UpdatePagedData();
             }
         }
+    }
+
+    private async Task SearchByEmployeeName()
+    {
+        employees = employees
+            .Where(p => p.FullName.Contains(EmployeeName));
+        UpdatePagedData();
+    }
+
+    private async Task SearchByLicense()
+    {
+        employees = employees
+            .Where(p => p.LicenseNumber.Contains(License));
+        UpdatePagedData();
+    }
+
+    private async Task SearchBySpecialization()
+    {
+        employees = employees
+            .Where(p => p.Specialization.Contains(Specialization));
+        UpdatePagedData();
     }
 }

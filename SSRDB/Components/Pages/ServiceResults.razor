@@ -77,6 +77,13 @@
 }
 else
 {
+    <div class="d-flex p-2">
+        <label for="Appointment" class="form-label">Поиск по номеру приёма</label>
+        <input class="form-control" id="Appointment" placeholder="Введите код диагноза..." @bind="SearchAppointmentId" @bind:event="oninput" @bind:after="SearchByAppointment">
+        <label for="Service" class="form-label">Поиск по услуге</label>
+        <input class="form-control" id="Service" placeholder="Введите название услуги..." @bind="SearchServiceName" @bind:event="oninput" @bind:after="SearchByService">
+    </div>
+
     <table class="table border">
         <thead>
             <tr>
@@ -256,5 +263,19 @@ else
                 UpdatePagedData();
             }
         }
+    }
+
+    private async Task SearchByAppointment()
+    {
+        appointmentServices = appointmentServices
+            .Where(p => p.AppointmentId == SearchAppointmentId);
+        UpdatePagedData();
+    }
+
+    private async Task SearchByService()
+    {
+        appointmentServices = appointmentServices
+            .Where(p => p.Service.Name.Contains(SearchServiceName));
+        UpdatePagedData();
     }
 }

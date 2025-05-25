@@ -53,6 +53,11 @@
 }
 else
 {
+    <div class="d-flex p-2">
+        <label for="Names" class="form-label">Поиск по названию</label>
+        <input class="form-control" id="Names" placeholder="Введите название..." @bind="Name" @bind:event="oninput" @bind:after="SearchByName">
+    </div>
+
     <table class="table border">
         <thead>
             <tr>
@@ -127,6 +132,8 @@ else
     public Entities.Service? ModelService { get; set; }
     private bool sorted;
     private string currentSortColumn;
+
+    private string Name = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -207,4 +214,11 @@ else
             }
         }
     }
+    private async Task SearchByName()
+    {
+        services = services
+            .Where(p => p.Name.Contains(Name));
+        UpdatePagedData();
+    }
+
 }

@@ -81,6 +81,14 @@
 }
 else
 {
+    <div class="d-flex p-2">
+        <label for="Diagnosis" class="form-label">Поиск по коду диагноза</label>
+        <input class="form-control" id="Diagnosis" placeholder="Введите код диагноза..." @bind="DiagnosisName" @bind:event="oninput" @bind:after="SearchByDiagnosis">
+        <label for="Medication" class="form-label">Поиск по медикаменту</label>
+        <input class="form-control" id="Medication" placeholder="Введите медикамент..." @bind="MedicationName" @bind:event="oninput" @bind:after="SearchByMedication">
+    </div>
+    
+
     <table class="table border">
         <thead>
             <tr>
@@ -260,5 +268,19 @@ else
                 UpdatePagedData();
             }
         }
+    }
+
+    private async Task SearchByDiagnosis()
+    {
+        prescriptions = prescriptions
+            .Where(p => p.Diagnosis.DiagnosisCode.Contains(DiagnosisName));
+        UpdatePagedData();
+    }
+
+    private async Task SearchByMedication()
+    {
+        prescriptions = prescriptions
+            .Where(p => p.Medication.Name.Contains(MedicationName));
+        UpdatePagedData();
     }
 }

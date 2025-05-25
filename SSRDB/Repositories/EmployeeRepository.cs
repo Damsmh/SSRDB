@@ -29,12 +29,12 @@ namespace SSRDB.Repositories
                 .FromSqlRaw($"""SELECT * FROM "Employees" WHERE "EmployeeId" = @EmployeeId""", EmployeeId)
                 .FirstOrDefaultAsync();
         }
-        public async Task<Employee> GetByNameAsync(string name)
+        public async Task<IEnumerable<Employee>> GetByNameAsync(string name)
         {
             var EmployeeName = new NpgsqlParameter("FullName", name);
             return await context.Employees
-                .FromSqlRaw($"""SELECT * FROM "Employees" WHERE "FullName" = @EmployeeId""", EmployeeName)
-                .FirstOrDefaultAsync();
+                .FromSqlRaw($"""SELECT * FROM "Employees" WHERE "FullName" LIKE @EmployeeId""", EmployeeName)
+                .ToListAsync();
         }
 
         public async Task AddAsync(Employee employee)

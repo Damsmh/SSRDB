@@ -40,6 +40,30 @@ namespace SSRDB.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Appointment>> GetByPatientNameAsync(string name)
+        {
+            return await context.Appointments
+                .FromSqlRaw($"""
+                    SELECT a.*
+                    FROM "Appointments" a
+                    JOIN "Patients" p ON a."PatientId" = p."PatientId"
+                    WHERE p."FullName" LIKE '%{name}%'
+                """)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Appointment>> GetByEmployeeNameAsync(string name)
+        {
+            return await context.Appointments
+                .FromSqlRaw($"""
+                    SELECT a.*
+                    FROM "Appointments" a
+                    JOIN "Employees" e ON a."EmployeeId" = e."EmployeeId"
+                    WHERE e."FullName" LIKE '%{name}%'
+                """)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<Appointment>> GetByEmployeeIdAsync(int id)
         {
             var EmployeeId = new NpgsqlParameter("EmployeeId", id);

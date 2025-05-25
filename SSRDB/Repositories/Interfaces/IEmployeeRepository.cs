@@ -6,7 +6,7 @@ namespace SSRDB.Repositories.Interfaces
     {
         Task<IEnumerable<Employee>> GetAllAsync();
         Task<Employee> GetByIdAsync(int id);
-        Task<Employee> GetByNameAsync(string name);
+        Task<IEnumerable<Employee>> GetByNameAsync(string name);
         Task<IEnumerable<Employee>?> SortByColumn(string column, string method);
         Task AddAsync(Employee employee);
         Task UpdateAsync(Employee employee);

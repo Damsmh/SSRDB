@@ -69,6 +69,12 @@
 }
 else
 {
+    <div class="d-flex p-2">
+        <label for="Appointments" class="form-label">Поиск по пациентам</label>
+        <input class="form-control" id="Appointments" placeholder="Введите номер приёма..." @bind="SearchAppointmentId" @bind:event="oninput" @bind:after="SearchByAppointmentId">
+        <label for="DiagnosisCode" class="form-label">Поиск по пациентам</label>
+        <input class="form-control" id="DiagnosisCode" placeholder="Введите имя врача..." @bind="SearchCode" @bind:event="oninput" @bind:after="SearchByDiagnosisCode">
+    </div>
     <table class="table border">
         <thead>
             <tr>
@@ -147,6 +153,7 @@ else
     private string currentSortColumn;
 
     private int SearchAppointmentId = 0;
+    private string SearchCode = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -235,5 +242,19 @@ else
                 UpdatePagedData();
             }
         }
+    }
+
+    private async Task SearchByAppointmentId()
+    {
+        diagnoses = diagnoses
+            .Where(p => p.AppointmentId == SearchAppointmentId);
+        UpdatePagedData();
+    }
+
+    private async Task SearchByDiagnosisCode()
+    {
+        diagnoses = diagnoses
+            .Where(p => p.DiagnosisCode.Contains(SearchCode));
+        UpdatePagedData();
     }
 }

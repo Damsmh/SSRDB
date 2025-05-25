@@ -32,12 +32,11 @@ namespace SSRDB.Repositories
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<Patient> GetByNameAsync(string name)
+        public async Task<IEnumerable<Patient>> GetByNameAsync(string name)
         {
-            var PatientName = new NpgsqlParameter("FullName", name);
             return await context.Patients
-                .FromSqlRaw($"""SELECT * FROM "Patients" WHERE "FullName" = @PatientName""", PatientName)
-                .FirstOrDefaultAsync();
+                .FromSqlRaw($"""SELECT * FROM "Patients" WHERE "FullName" LIKE '%{name}%'""")
+                .ToListAsync();
         }
 
         public async Task AddAsync(Patient patient)
