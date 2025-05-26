@@ -13,7 +13,7 @@ namespace SSRDB.Repositories
         private readonly Dictionary<string, string> columnTranslate = new()
         {
             {"ID", "PatientId"},
-            {"ФИО", "FullNamme"},
+            {"ФИО", "FullName"},
             {"Дата рождения", "BirthDate"},
             {"Пол", "Gender"},
         };
