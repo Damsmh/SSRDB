@@ -1,6 +1,5 @@
 ﻿@page "/diagnoses"
 @inherits OwningComponentBase<IDiagnosisRepository>
-@attribute [StreamRendering]
 @rendermode InteractiveServer
 @inject IAppointmentRepository AppointmentService
 
@@ -101,8 +100,10 @@ else
             {
                 <tr @key="diagnose.DiagnosisId">
                     <td class="align-middle">@diagnose.DiagnosisId</td>
-                    <td class="align-middle">@diagnose.AppointmentId</td>
                     <td class="align-middle">@diagnose.DiagnosisCode</td>
+                    <td class="align-middle">@diagnose.AppointmentId</td>
+                    <td class="align-middle">@diagnose.Appointment.Patient.FullName</td>
+                    <td class="align-middle">@diagnose.Appointment.Employee.FullName</td>
                     <td class="align-middle">@diagnose.Description</td>
                     <td class="align-middle">@diagnose.Recommendations</td>
                     <td>
@@ -149,7 +150,7 @@ else
     private int currentPage = 1;
     private int pageSize = 10;
     private int totalPages;
-    private List<string> headers = ["ID", "Номер приёма", "Код(МКБ-10)", "Описание", "Рекомендации", "Действия"];
+    private List<string> headers = ["ID", "Код(МКБ-10)", "Номер приёма", "Паицент", "Врач", "Описание", "Рекомендации", "Действия"];
     [SupplyParameterFromForm(FormName = "DiagnoseForm")]
     public Entities.Diagnosis? ModelDiagnose { get; set; }
     private IEnumerable<Appointment>? appointments;

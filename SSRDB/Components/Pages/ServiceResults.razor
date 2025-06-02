@@ -1,7 +1,6 @@
 ﻿@page "/appointmentServices"
 @inherits OwningComponentBase<IAppointmentServiceRepository>
 @rendermode InteractiveServer
-@attribute [StreamRendering]
 @inject IAppointmentRepository AppointmentService
 @inject IServiceRepository ServiceService
 
@@ -111,6 +110,8 @@ else
                 <tr @key="appointmentService.AppointmentServiceId">
                     <td class="align-middle">@appointmentService.AppointmentServiceId</td>
                     <td class="align-middle">@appointmentService.AppointmentId</td>
+                    <td class="align-middle">@appointmentService.Appointment.Patient.FullName</td>
+                    <td class="align-middle">@appointmentService.Appointment.Employee.FullName</td>
                     <td class="align-middle">@appointmentService.Service.Name</td>
                     <td class="align-middle">@appointmentService.Result</td>
                     <td>
@@ -157,7 +158,7 @@ else
     private int currentPage = 1;
     private int pageSize = 10;
     private int totalPages;
-    private List<string> headers = ["ID", "Номер приёма", "Услуга", "Результат", "Действия"];
+    private List<string> headers = ["ID", "Номер приёма", "Пациент", "Врач", "Услуга", "Результат", "Действия"];
     [SupplyParameterFromForm(FormName = "AppointmentServiceForm")]
     public Entities.AppointmentService? ModelAppointmentService { get; set; }
     private IEnumerable<Appointment>? appointments;
@@ -173,10 +174,9 @@ else
         ModelAppointmentService ??= new();
         ModelAppointmentService!.AppointmentServiceId = 0;
         appointmentServices = await Service.GetAllAsync();
-        UpdatePagedData();
         appointments = await AppointmentService.GetAllAsync();
         services = await ServiceService.GetAllAsync();
-        
+        UpdatePagedData();
     }
 
     private void Discard()
